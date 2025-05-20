@@ -81,7 +81,8 @@ const NewThoughtBoard = () => {
           Send a happy thought❤️
         </Button>
         <Button sx={{
-          backgroundColor: "#fc7685", 
+          backgroundColor: "#fc7685",
+          color: "white", 
           borderRadius:"99999",// Ensures button is pink
           "&:hover": { backgroundColor: "#secondary" }, // Slightly darker pink on hover
         }} onClick={handleQuestion}>
