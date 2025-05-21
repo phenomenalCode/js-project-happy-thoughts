@@ -7,6 +7,7 @@ const OlderThoughts = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchThoughts = () => {
+    
     setLoading(true);
     fetch("https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts")
       .then(res => res.json())
