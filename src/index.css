@@ -1,3 +1,170 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+body {
+  background: linear-gradient(180deg, #f5cccc 0%, #f5e1e1 100%);
 }
+
+/* General Styles for .questions, .older-thoughts, .liked-thoughts */
+.questions, .older-thoughts, .liked-thoughts {
+  border-radius: 1rem;
+  box-shadow: 0 8px 16px rgba(255, 105, 180, 0.2); /* Light pink shadow */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.questions {
+  background-color: #fff0f5; /* Light pink background */
+  color: #e60026; /* Deep red text */
+  padding: 2rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: #9c001a; /* Vivid red-pink */
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+h2 {font-size: 2.5rem;
+  color: #a5001c; /* Vivid red-pink */
+  text-align: center;
+  margin-bottom: 1.5rem;}
+.container {
+  text-align: center;
+}
+
+/* Your existing panel styles */
+.liked-thoughts,
+.random-thoughts {
+  display: inline-block;
+  vertical-align: top;
+  width: 48%;
+  box-sizing: border-box;
+  margin: 1% 1%;
+  background-color: #eaeaeae6;
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 5px 8px rgba(0, 0, 0, 10);
+  color: #000000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+}
+
+/* Stack full-width on mobile */
+@media (max-width: 768px) {
+  .liked-thoughts,
+  .random-thoughts {
+    display: block;
+    width: 100%;
+    margin: 1rem 0;
+
+  }
+}
+
+/* Refresh Button */
+.refresh-button {
+  background-color: #ffb6c1; /* Light pink background */
+  color: #e60026; /* Deep red text */
+  border: 2px solid #e60026; /* Red border */
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  display: block;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-align: center;
+}
+
+.refresh-button:hover {
+  background-color: #ff69b4; /* Hot pink background on hover */
+  color: white;
+}
+
+/* Textarea Styles */
+textarea {
+  width: 100%;
+  height: 120px;
+  border: 2px solid #e60026; /* Red border */
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background-color: #fff; /* White background */
+  color: #e60026; /* Deep red text */
+  font-size: 1rem;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #ff69b4; /* Pink border on focus */
+}
+
+/* List item styles */
+.questions ul {
+  list-style-type: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.questions li {
+  background-color: #ffe4e1; /* Light pink background */
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+  border-radius: 0.5rem;
+  border-left: 4px solid #ff69b4; /* Hot pink left border */
+  color: #e60026; /* Deep red text */
+  font-size: 1rem;
+}
+
+.questions li:hover {
+  background-color: #ffb6c1; /* Slightly darker pink on hover */
+  cursor: pointer;
+}
+
+.questions li p {
+  margin: 0;
+}
+button {
+  background-color: #e60026; /* Deep red background */
+  color: white; /* White text color */
+  border: 2px solid #e60026; /* Red border */
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 0.5rem;
+}
+
+button:hover {
+  background-color: #ff0000; /* Darker red on hover */
+  color: white;
+}
+
+button:disabled {
+  background-color: #ffcccc; /* Light red for disabled state */
+  color: #aaa; /* Light grey text */
+  border: 2px solid #ffcccc;
+  cursor: not-allowed;
+}
+
+/* Additional Responsive Styles */
+@media (max-width: 768px) {
+  .questions, .older-thoughts, .liked-thoughts {
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .refresh-button {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
+  
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .liked-thoughts h2 {
+    font-size: 22px;
+  }
+}
+
+
