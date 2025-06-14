@@ -5,7 +5,7 @@ const RandomThoughts = () => {
 
   // Fetch random thoughts function
   const fetchRandomThoughts = () => {
-    fetch("https://happy-thoughts-ux7hkzgmwa-uc.a.run.app/thoughts")
+    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts")
       .then((res) => res.json())
       .then((data) => {
         const shuffled = data.sort(() => 0.5 - Math.random());
