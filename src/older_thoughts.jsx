@@ -22,63 +22,61 @@ const getCurrentUserIdFromToken = () => {
   }
 };
 
-const OlderThoughts = () => {
-  const [thoughts, setThoughts] = useState([]);
-  const [likedThoughts, setLikedThoughts] = useState(new Set());
-  const [loading, setLoading] = useState(true);
+const OlderThoughts = ({ thoughts, setThoughts, likedThoughts, setLikedThoughts }) => {
   const [editOpen, setEditOpen] = useState(false);
   const [editText, setEditText] = useState("");
   const [editId, setEditId] = useState(null);
-
   const currentUserId = getCurrentUserIdFromToken();
-
-  const fetchThoughts = () => {
-    setLoading(true);
-    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts")
-      .then(res => res.json())
-      .then(data => {
-        const sortedByTime = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setThoughts(sortedByTime.slice(0, 4));
-        setLoading(false);
-      });
-  };
 
   const handleLike = (thoughtId) => {
     if (!thoughtId || likedThoughts.has(thoughtId)) return;
 
-    setThoughts(prevThoughts =>
-      prevThoughts.map(thought =>
-        thought._id === thoughtId ? { ...thought, hearts: thought.hearts + 1 } : thought
+    setThoughts(prev =>
+      prev.map(t =>
+        t._id === thoughtId ? { ...t, hearts: t.hearts + 1 } : t
       )
     );
 
     fetch(`https://happy-thoughts-api-4ful.onrender.com/thoughts/${thoughtId}/like`, {
-      method: 'POST'
+      method: 'POST',
     })
       .then(res => res.json())
-      .then(updatedThought => {
-        setThoughts(prevThoughts =>
-          prevThoughts.map(thought =>
-            thought._id === thoughtId ? updatedThought : thought
-          )
+      .then(updated => {
+        setThoughts(prev =>
+          prev.map(t => (t._id === thoughtId ? updated : t))
         );
         const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
-        const updatedLiked = [...currentLiked, updatedThought];
+        const updatedLiked = [...currentLiked, updated];
         localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
         setLikedThoughts(new Set(updatedLiked.map(t => t._id)));
       });
   };
 
   const handleEdit = (thought) => {
-    setEditText(thought.message);
+    if (!thought?._id) {
+      console.error("No valid ID found in thought", thought);
+      return;
+    }
     setEditId(thought._id);
+    setEditText(thought.message);
     setEditOpen(true);
   };
 
   const handleEditSave = () => {
-    const token = localStorage.getItem("token");
+    if (!editId || !editText.trim()) {
+      console.error("Missing ID or empty message");
+      return;
+    }
 
-    fetch(`https://happy-thoughts-api-4ful.onrender.com/thoughts/${editId}`, {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found in localStorage");
+      return;
+    }
+
+    const url = `https://happy-thoughts-api-4ful.onrender.com/thoughts/${editId.trim()}`;
+
+    fetch(url, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -86,18 +84,36 @@ const OlderThoughts = () => {
       },
       body: JSON.stringify({ message: editText }),
     })
-      .then(res => res.json())
-      .then(updated => {
-        setThoughts(prev =>
-          prev.map(thought =>
+      .then((res) => {
+        if (res.status === 404) {
+          alert("⚠️ This thought no longer exists on the server.");
+          setThoughts((prev) => prev.filter((t) => t._id !== editId));
+          setEditOpen(false);
+          return null;
+        }
+
+        if (!res.ok) {
+          throw new Error(`Edit failed: ${res.status}`);
+        }
+
+        return res.json();
+      })
+      .then((updated) => {
+        if (!updated) return;
+
+        setThoughts((prev) =>
+          prev.map((thought) =>
             thought._id === editId ? { ...thought, message: updated.message } : thought
           )
         );
+
         setEditOpen(false);
         setEditText("");
         setEditId(null);
       })
-      .catch(err => console.error("Failed to edit:", err));
+      .catch((err) => {
+        console.error("❌ Edit error:", err);
+      });
   };
 
   const handleDelete = (thoughtId) => {
@@ -112,11 +128,13 @@ const OlderThoughts = () => {
   };
 
   useEffect(() => {
-    fetchThoughts();
-    const liked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
-    setLikedThoughts(new Set(liked.map(thought => thought._id)));
-  }, []);
-console.log(thoughts);
+    if (editOpen) {
+      const thoughtToEdit = thoughts.find(t => t._id === editId);
+      if (thoughtToEdit) {
+        setEditText(thoughtToEdit.message);
+      }
+    }
+  }, [editOpen, editId, thoughts]);
 
   return (
     <Box
@@ -134,20 +152,23 @@ console.log(thoughts);
         Recent Server Thoughts
       </Typography>
 
-      {loading ? (
-        <Typography textAlign="center">Loading thoughts...</Typography>
+      {thoughts.length === 0 ? (
+        <Typography textAlign="center">No thoughts found.</Typography>
       ) : (
-       thoughts.map(thought => (
-                 <Box key={ thought.message} p={2} mb={2} border="1px solid #ddd" borderRadius="8px">
-                   <Typography>❤️ {thought.hearts}</Typography>
-                   <Typography>{thought.message}</Typography>
-       
+        thoughts.map((thought) => (
+          <Box key={thought._id} p={2} mb={2} border="1px solid #ddd" borderRadius="8px">
+            <Typography>❤️ {thought.hearts}</Typography>
+            <Typography>{thought.message}</Typography>
 
             <Button
               variant="contained"
               onClick={() => handleLike(thought._id)}
               disabled={!thought._id || likedThoughts.has(thought._id)}
-              sx={{ mt: 1, backgroundColor: 'pink', '&:hover': { backgroundColor: '#fc7685' } }}
+              sx={{
+                mt: 1,
+                backgroundColor: 'pink',
+                '&:hover': { backgroundColor: '#fc7685' },
+              }}
             >
               {!thought._id
                 ? 'Cannot Like'
@@ -157,25 +178,40 @@ console.log(thoughts);
             </Button>
 
             <Box mt={1}>
-     <Button
-  onClick={() => handleEdit(thought)}
-  sx={{ mr: 1 }}
-  variant="outlined"
-  disabled={!(thought && thought._id)}
->
-  Edit
-</Button>
+              <Button
+                onClick={() => handleEdit(thought)}
+                sx={{
+                  mr: 1,
+                  backgroundColor: '#007BFF',
+                  color: '#FFFFFF',
+                  '&:hover': { backgroundColor: '#0056b3' },
+                  '&:disabled': {
+                    backgroundColor: '#a6c8ff',
+                    color: '#e1e5ea',
+                  },
+                }}
+                variant="outlined"
+                disabled={!(thought && thought._id)}
+              >
+                Edit
+              </Button>
 
-<Button
-  onClick={() => handleDelete(thought._id)}
-  color="error"
-  variant="outlined"
-  disabled={!(thought && thought._id)}
->
-  Delete
-</Button>
-
-
+              <Button
+                onClick={() => handleDelete(thought._id)}
+                sx={{
+                  backgroundColor: '#dc3545',
+                  color: '#FFFFFF',
+                  '&:hover': { backgroundColor: '#a71d2a' },
+                  '&:disabled': {
+                    backgroundColor: '#f5aeb4',
+                    color: '#fbe9eb',
+                  },
+                }}
+                variant="outlined"
+                disabled={!(thought && thought._id)}
+              >
+                Delete
+              </Button>
             </Box>
           </Box>
         ))
@@ -189,13 +225,19 @@ console.log(thoughts);
             autoFocus
             fullWidth
             variant="standard"
-            value={editText}
+            value={editText ?? ''}
             onChange={(e) => setEditText(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button onClick={handleEditSave} variant="contained">Save</Button>
+          <Button
+            onClick={handleEditSave}
+            variant="contained"
+            disabled={!editId || !editText.trim()}
+          >
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

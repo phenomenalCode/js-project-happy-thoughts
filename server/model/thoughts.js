@@ -26,10 +26,11 @@ const thoughtSchema = new mongoose.Schema({
     type: [String],
     default: [],
   }, user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User", // <- Make sure you have a User model
-    required: true,
-  },
-});
-
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  required: true // ✅ This enforces it!
+}
+ // <- Make sure you have a User model
+   
+  },      )
 module.exports = mongoose.model('Thought', thoughtSchema);

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
 
-const NewThoughtBoard = () => {
+
+const NewThoughtBoard = ({ prependThought }) => {
   const questionArr = [
     "How is your day going?",
     "Are you motivated to reach your goals?",
@@ -20,7 +21,7 @@ const NewThoughtBoard = () => {
       return null;
     }
   };
-
+  
   const [messages, setMessages] = useState([]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [message, setMessage] = useState("");
@@ -42,33 +43,42 @@ const NewThoughtBoard = () => {
     console.log("🔐 Token retrieved from localStorage:", token);
     console.log("👤 Current User ID:", user);
 
-    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts", {
+    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts/"`${thoughts._id}${trim()}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ message }),
-    })
-      .then((res) => res.json())
-      .then((newThought) => {
-          console.log("🆕 New thought object from backend:", newThought);
-        setMessages((prev) => [
-          ...prev,
-          {
-            text: newThought.message,
-            question: currentQuestion,
-            id: newThought._id,
-            user: user,
-          },
-        ]);
-        setMessage("");
-      })
-      .catch((err) => {
-        console.error("Failed to submit thought:", err);
-      });
-  };
+    }) 
+    .then((res) => res.json())
+    .then((newThought) => {
+      console.log("🆕 New thought object from backend:", newThought);
 
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: newThought._id,
+          text: newThought.message,
+          question: currentQuestion,
+          userId: newThought.user ?? user
+        },
+      ]);
+
+      
+      if (prependThought) {
+        prependThought(newThought); // Inform parent (OlderThoughts)
+      }
+
+      setMessage("");
+    })
+    .catch((err) => {
+      console.error("Failed to submit thought:", err);
+    });
+};
+
+
+  
   const handleQuestion = () => {
     setQuestionIndex((prevIndex) => (prevIndex + 1) % questionArr.length);
   };

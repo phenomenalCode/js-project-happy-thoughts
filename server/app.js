@@ -9,12 +9,21 @@ const authRoutes = require('./routes/login_out');       // your auth routes
 const thoughtRoutes = require('./routes/thought_routes'); // your thoughts routes
 
 // Middleware
-app.use(cors());
+
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://happy-thoughts-api-4ful.onrender.com'],
+  methods: ['GET','POST','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
 app.use(express.json());
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/thoughts', thoughtRoutes);
+app.get("/", (req, res) => {
+  res.send("🚀 Happy Thoughts backend is running!");
+});
+
+app.use('/auth', authRoutes);
+app.use('/thoughts', thoughtRoutes);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/happy-thoughts')
