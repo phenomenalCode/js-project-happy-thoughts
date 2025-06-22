@@ -22,11 +22,25 @@ const getCurrentUserIdFromToken = () => {
   }
 };
 
-const OlderThoughts = ({ thoughts, setThoughts, likedThoughts, setLikedThoughts }) => {
+const OlderThoughts = () => {
+  const [thoughts, setThoughts] = useState([]);
+  const [likedThoughts, setLikedThoughts] = useState(new Set());
+  const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [editText, setEditText] = useState("");
   const [editId, setEditId] = useState(null);
   const currentUserId = getCurrentUserIdFromToken();
+
+  const fetchThoughts = () => {
+    setLoading(true);
+    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts")
+      .then(res => res.json())
+      .then(data => {
+        const sortedByTime = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setThoughts(sortedByTime);
+        setLoading(false);
+      });
+  };
 
   const handleLike = (thoughtId) => {
     if (!thoughtId || likedThoughts.has(thoughtId)) return;
@@ -53,30 +67,19 @@ const OlderThoughts = ({ thoughts, setThoughts, likedThoughts, setLikedThoughts 
   };
 
   const handleEdit = (thought) => {
-    if (!thought?._id) {
-      console.error("No valid ID found in thought", thought);
-      return;
-    }
+    if (!thought?._id) return;
     setEditId(thought._id);
     setEditText(thought.message);
     setEditOpen(true);
   };
 
   const handleEditSave = () => {
-    if (!editId || !editText.trim()) {
-      console.error("Missing ID or empty message");
-      return;
-    }
+    if (!editId || !editText.trim()) return;
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found in localStorage");
-      return;
-    }
+    if (!token) return;
 
-    const url = `https://happy-thoughts-api-4ful.onrender.com/thoughts/${editId.trim()}`;
-
-    fetch(url, {
+    fetch(`https://happy-thoughts-api-4ful.onrender.com/thoughts/${editId.trim()}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -86,34 +89,24 @@ const OlderThoughts = ({ thoughts, setThoughts, likedThoughts, setLikedThoughts 
     })
       .then((res) => {
         if (res.status === 404) {
-          alert("⚠️ This thought no longer exists on the server.");
-          setThoughts((prev) => prev.filter((t) => t._id !== editId));
+          alert("⚠️ This thought no longer exists.");
+          setThoughts(prev => prev.filter(t => t._id !== editId));
           setEditOpen(false);
           return null;
         }
-
-        if (!res.ok) {
-          throw new Error(`Edit failed: ${res.status}`);
-        }
-
+        if (!res.ok) throw new Error(`Edit failed: ${res.status}`);
         return res.json();
       })
       .then((updated) => {
         if (!updated) return;
-
-        setThoughts((prev) =>
-          prev.map((thought) =>
-            thought._id === editId ? { ...thought, message: updated.message } : thought
-          )
+        setThoughts(prev =>
+          prev.map(t => (t._id === editId ? { ...t, message: updated.message } : t))
         );
-
         setEditOpen(false);
         setEditText("");
         setEditId(null);
       })
-      .catch((err) => {
-        console.error("❌ Edit error:", err);
-      });
+      .catch(err => console.error("❌ Edit error:", err));
   };
 
   const handleDelete = (thoughtId) => {
@@ -126,6 +119,23 @@ const OlderThoughts = ({ thoughts, setThoughts, likedThoughts, setLikedThoughts 
       setThoughts(prev => prev.filter(t => t._id !== thoughtId));
     });
   };
+
+  useEffect(() => {
+    fetchThoughts();
+    const liked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
+    setLikedThoughts(new Set(liked.map(thought => thought._id)));
+
+    // ✅ Listen for new thoughts added
+    const handleThoughtAdded = () => {
+      fetchThoughts();
+    };
+
+    window.addEventListener('thoughtAdded', handleThoughtAdded);
+
+    return () => {
+      window.removeEventListener('thoughtAdded', handleThoughtAdded);
+    };
+  }, []);
 
   useEffect(() => {
     if (editOpen) {
@@ -152,8 +162,8 @@ const OlderThoughts = ({ thoughts, setThoughts, likedThoughts, setLikedThoughts 
         Recent Server Thoughts
       </Typography>
 
-      {thoughts.length === 0 ? (
-        <Typography textAlign="center">No thoughts found.</Typography>
+      {loading ? (
+        <Typography textAlign="center">Loading thoughts...</Typography>
       ) : (
         thoughts.map((thought) => (
           <Box key={thought._id} p={2} mb={2} border="1px solid #ddd" borderRadius="8px">
@@ -184,14 +194,16 @@ const OlderThoughts = ({ thoughts, setThoughts, likedThoughts, setLikedThoughts 
                   mr: 1,
                   backgroundColor: '#007BFF',
                   color: '#FFFFFF',
-                  '&:hover': { backgroundColor: '#0056b3' },
+                  '&:hover': {
+                    backgroundColor: '#0056b3',
+                  },
                   '&:disabled': {
                     backgroundColor: '#a6c8ff',
                     color: '#e1e5ea',
                   },
                 }}
                 variant="outlined"
-                disabled={!(thought && thought._id)}
+                disabled={!thought._id}
               >
                 Edit
               </Button>
@@ -201,14 +213,16 @@ const OlderThoughts = ({ thoughts, setThoughts, likedThoughts, setLikedThoughts 
                 sx={{
                   backgroundColor: '#dc3545',
                   color: '#FFFFFF',
-                  '&:hover': { backgroundColor: '#a71d2a' },
+                  '&:hover': {
+                    backgroundColor: '#a71d2a',
+                  },
                   '&:disabled': {
                     backgroundColor: '#f5aeb4',
                     color: '#fbe9eb',
                   },
                 }}
                 variant="outlined"
-                disabled={!(thought && thought._id)}
+                disabled={!thought._id}
               >
                 Delete
               </Button>

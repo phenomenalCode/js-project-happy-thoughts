@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+
 const thoughtSchema = new mongoose.Schema({
   message: {
     type: String,
@@ -25,12 +26,11 @@ const thoughtSchema = new mongoose.Schema({
   tags: {
     type: [String],
     default: [],
-  }, user: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User",
-  required: true // ✅ This enforces it!
-}
- // <- Make sure you have a User model
-   
-  },      )
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'A thought must have a user!'],   // ← *really* require it
+  },
+});
 module.exports = mongoose.model('Thought', thoughtSchema);

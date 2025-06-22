@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
-import React from "react";
+import React, { useState } from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
-
 
 const NewThoughtBoard = ({ prependThought }) => {
   const questionArr = [
@@ -16,16 +14,17 @@ const NewThoughtBoard = ({ prependThought }) => {
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload.id || payload.userId || payload._id;
+      console.log("User ID from token:", payload.userId);
+      return payload.userId ?? null;
     } catch {
       return null;
     }
   };
-  
+
+  const user = getCurrentUserIdFromToken();
   const [messages, setMessages] = useState([]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [message, setMessage] = useState("");
-  const [user, setUser] = useState(getCurrentUserIdFromToken());
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -38,47 +37,52 @@ const NewThoughtBoard = ({ prependThought }) => {
     const token = localStorage.getItem("token");
 
     console.log("📤 Submitting thought...");
+    
     console.log("✍️ Message:", message);
     console.log("❓ Question:", currentQuestion);
-    console.log("🔐 Token retrieved from localStorage:", token);
-    console.log("👤 Current User ID:", user);
+    console.log("🔐 Token:", token);
+    console.log("👤 User ID:", user);
 
-    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts/"`${thoughts._id}${trim()}`, {
+    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ message }),
-    }) 
-    .then((res) => res.json())
-    .then((newThought) => {
-      console.log("🆕 New thought object from backend:", newThought);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: newThought._id,
-          text: newThought.message,
-          question: currentQuestion,
-          userId: newThought.user ?? user
-        },
-      ]);
-
-      
-      if (prependThought) {
-        prependThought(newThought); // Inform parent (OlderThoughts)
-      }
-
-      setMessage("");
     })
-    .catch((err) => {
-      console.error("Failed to submit thought:", err);
-    });
-};
+      .then((res) => res.json())
+      .then((newThought) => {
+         console.log("✅ New thought submit:", newThought);
+        const thoughtWithUser = {
+          _id: newThought._id,
+          message: newThought.message,
+          hearts: newThought.hearts ?? 0,
+          createdAt: newThought.createdAt ?? new Date(),
+          category: newThought.category ?? "General",
+          tags: newThought.tags ?? [],
+          user: newThought.user ?? user,
+        };
+window.dispatchEvent(new Event('thoughtAdded'));
 
+        const frontEndThought = {
+          ...thoughtWithUser,
+          question: currentQuestion, // UI only
+        };
 
-  
+        setMessages((prev) => [...prev, frontEndThought]);
+
+        if (prependThought) {
+          prependThought(frontEndThought);
+        }
+
+        setMessage("");
+      })
+      .catch((err) => {
+        console.error("Failed to submit thought:", err);
+      });
+  };
+
   const handleQuestion = () => {
     setQuestionIndex((prevIndex) => (prevIndex + 1) % questionArr.length);
   };
@@ -109,7 +113,7 @@ const NewThoughtBoard = ({ prependThought }) => {
           <li key={i}>
             <strong>{entry.question}</strong>
             <br />
-            {entry.text}
+            {entry.message}
           </li>
         ))}
       </ul>
@@ -125,6 +129,7 @@ const NewThoughtBoard = ({ prependThought }) => {
       <Box display="flex" justifyContent="center" gap={2}>
         <Button
           variant="contained"
+          disabled={!user || message.trim() === ""}
           sx={{
             backgroundColor: "#fc7685",
             borderRadius: "99999px",

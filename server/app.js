@@ -24,6 +24,7 @@ app.get("/", (req, res) => {
 
 app.use('/auth', authRoutes);
 app.use('/thoughts', thoughtRoutes);
+console.log("Connecting to MongoDB at:", process.env.MONGO_URI);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/happy-thoughts')
