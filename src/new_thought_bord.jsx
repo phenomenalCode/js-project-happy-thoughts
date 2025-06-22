@@ -43,7 +43,7 @@ const NewThoughtBoard = ({ prependThought }) => {
     console.log("🔐 Token:", token);
     console.log("👤 User ID:", user);
 
-    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts", {
+    fetch("https://js-project-happy-thoughts.onrender.com/thoughts", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

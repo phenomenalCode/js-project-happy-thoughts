@@ -15,7 +15,7 @@ export const App = () => {
 
   // Fetch thoughts from server
   const fetchThoughts = () => {
-    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts")
+    fetch(" https://js-project-happy-thoughts.onrender.com/thoughts")
       .then((res) => res.json())
       .then((data) => {
         const sorted = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
