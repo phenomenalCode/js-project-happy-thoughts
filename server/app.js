@@ -9,13 +9,25 @@ const authRoutes = require('./routes/login_out');       // your auth routes
 const thoughtRoutes = require('./routes/thought_routes'); // your thoughts routes
 
 // Middleware
+const allowedOrigins = [ // backend test
+  'https://js-project-happy-thoughts.onrender.com', // live backend
+  'https://aesthetic-rolypoly-596b68.netlify.app', // frontend
+];
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://happy-thoughts-api-4ful.onrender.com'],
-  methods: ['GET','POST','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('⛔ Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 app.use(express.json());
+console.log("✅ Loaded MONGO_URI from .env:", process.env.MONGO_URI);
 
 // Routes
 app.get("/", (req, res) => {
