@@ -229,53 +229,49 @@ const OlderThoughts = () => {
           : '💖 Like'}
       </Button>
 
-      {/* …your Edit/Delete buttons here… */}
+      <Box mt={1}>
+        <Button
+          onClick={() => handleEdit(thought)}
+          sx={{
+            mr: 1,
+            backgroundColor: '#007BFF',
+            color: '#FFFFFF',
+            '&:hover': {
+              backgroundColor: '#0056b3',
+            },
+            '&:disabled': {
+              backgroundColor: '#a6c8ff',
+              color: '#e1e5ea',
+            },
+          }}
+          variant="outlined"
+          disabled={!currentUserId}
+        >
+          Edit
+        </Button>
+
+        <Button
+          onClick={() => handleDelete(thought._id)}
+          sx={{
+            backgroundColor: '#dc3545',
+            color: '#FFFFFF',
+            '&:hover': {
+              backgroundColor: '#a71d2a',
+            },
+            '&:disabled': {
+              backgroundColor: '#f5aeb4',
+              color: '#fbe9eb',
+            },
+          }}
+          variant="outlined"
+          disabled={!currentUserId}
+        >
+          Delete
+        </Button>
+      </Box>
     </Box>
   ))
 )}
-            <Box mt={1}>
-              <Button
-                onClick={() => handleEdit(thought)}
-                sx={{
-                  mr: 1,
-                  backgroundColor: '#007BFF',
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: '#0056b3',
-                  },
-                  '&:disabled': {
-                    backgroundColor: '#a6c8ff',
-                    color: '#e1e5ea',
-                  },
-                }}
-                variant="outlined"
-                disabled={thoughts.user !== currentUserId}
-              >
-                Edit
-              </Button>
-
-              <Button
-                onClick={() => handleDelete(thoughts.user !== currentUserId)}
-                sx={{
-                  backgroundColor: '#dc3545',
-                  color: '#FFFFFF',
-                  '&:hover': {
-                    backgroundColor: '#a71d2a',
-                  },
-                  '&:disabled': {
-                    backgroundColor: '#f5aeb4',
-                    color: '#fbe9eb',
-                  },
-                }}
-                variant="outlined"
-                disabled={thought.user !== currentUserId}
-              >
-                Delete
-              </Button>
-            </Box>
-          </Box>
-        ))
-      )}
 
       {/* Edit Modal */}
       <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
