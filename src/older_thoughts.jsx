@@ -30,36 +30,46 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
   const currentUserId = getCurrentUserIdFromToken();
 
   const handleLike = (thoughtId) => {
-    if (!thoughtId || likedSet.has(thoughtId)) return;
+  if (!thoughtId || likedSet.has(thoughtId)) return;
 
-    // Optimistic UI update
-    setThoughts((prevThoughts) =>
-      prevThoughts.map((thought) =>
-        thought._id === thoughtId
-          ? { ...thought, hearts: (thought.hearts || 0) + 1 }
-          : thought
-      )
-    );
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.error('No token found. Please log in.');
+    return;
+  }
 
-    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
-      method: 'PATCH',
+  // Optimistic UI update
+  setThoughts((prevThoughts) =>
+    prevThoughts.map((thought) =>
+      thought._id === thoughtId
+        ? { ...thought, hearts: (thought.hearts || 0) + 1 }
+        : thought
+    )
+  );
+
+  fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => res.json())
+    .then((updatedThought) => {
+      setThoughts((prevThoughts) =>
+        prevThoughts.map((thought) =>
+          thought._id === thoughtId ? updatedThought : thought
+        )
+      );
+
+      // Update localStorage and likedSet
+      const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
+      const updatedLiked = [...new Set([...currentLiked, updatedThought._id])];
+      localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
+      setLikedSet(new Set(updatedLiked));
     })
-      .then((res) => res.json())
-      .then((updatedThought) => {
-        setThoughts((prevThoughts) =>
-          prevThoughts.map((thought) =>
-            thought._id === thoughtId ? updatedThought : thought
-          )
-        );
+    .catch((err) => console.error('Like error:', err));
+};
 
-        // Update localStorage and likedSet
-        const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
-        const updatedLiked = [...new Set([...currentLiked, updatedThought._id])];
-        localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
-        setLikedSet(new Set(updatedLiked));
-      })
-      .catch((err) => console.error('Like error:', err));
-  };
 
   const handleEditSave = () => {
     const token = localStorage.getItem('token');
