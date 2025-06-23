@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -30,53 +30,45 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
   const currentUserId = getCurrentUserIdFromToken();
 
   const handleLike = (thoughtId) => {
-  if (!thoughtId || likedSet.has(thoughtId)) return;
+    if (!thoughtId || likedSet.has(thoughtId)) return;
 
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.error('No token found. Please log in.');
-    return;
-  }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found. Please log in.');
+      return;
+    }
 
-  // Optimistic UI update
-  setThoughts((prevThoughts) =>
-    prevThoughts.map((thought) =>
-      thought._id === thoughtId
-        ? { ...thought, hearts: (thought.hearts || 0) + 1 }
-        : thought
-    )
-  );
+    // Optimistic UI update
+    setThoughts((prevThoughts) =>
+      prevThoughts.map((thought) =>
+        thought._id === thoughtId
+          ? { ...thought, hearts: (thought.hearts || 0) + 1 }
+          : thought
+      )
+    );
 
-  fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-    .then((res) => res.json())
-    .then((updatedThought) => {
-      setThoughts((prevThoughts) =>
-        prevThoughts.map((thought) => {
-          if (thought._id === thoughtId) {
-            return {
-              ...thought,
-              ...updatedThought,
-              user: thought.user || updatedThought.user, // Prefer local user ref
-            };
-          }
-          return thought;
-        })
-      );
-
-      // Update localStorage and likedSet
-      const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
-      const updatedLiked = [...new Set([...currentLiked, updatedThought._id])];
-      localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
-      setLikedSet(new Set(updatedLiked));
+    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
     })
-    .catch((err) => console.error('Like error:', err));
-};
+      .then((res) => res.json())
+      .then((updatedThought) => {
+        setThoughts((prevThoughts) =>
+          prevThoughts.map((thought) =>
+            thought._id === thoughtId
+              ? { ...thought, ...updatedThought, user: thought.user || updatedThought.user }
+              : thought
+          )
+        );
 
+        // Update localStorage and likedSet
+        const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
+        const updatedLiked = [...new Set([...currentLiked, updatedThought._id])];
+        localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
+        setLikedSet(new Set(updatedLiked));
+      })
+      .catch((err) => console.error('Like error:', err));
+  };
 
   const handleEditSave = () => {
     const token = localStorage.getItem('token');
@@ -93,9 +85,7 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
       .then((res) => res.json())
       .then((updated) => {
         setThoughts((prev) =>
-          prev.map((t) =>
-            t._id === editId ? { ...t, message: updated.message } : t
-          )
+          prev.map((t) => (t._id === editId ? { ...t, message: updated.message } : t))
         );
         setEditOpen(false);
         setEditText('');
@@ -105,11 +95,15 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
   };
 
   const handleDelete = (thoughtId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No token found. Please log in.');
+      return;
+    }
+
     fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then(() => {
         setThoughts((prev) => prev.filter((t) => t._id !== thoughtId));
@@ -136,13 +130,19 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
         <Typography textAlign="center">Loading thoughts...</Typography>
       ) : (
         thoughts
-          .filter((thought) => thought != null)
+          .filter(Boolean)
           .map((thought) => {
-            console.log('Thought user:', thought.user, 'Type:', typeof thought.user);
-console.log('OwnerId:', ownerId, 'CurrentUserId:', currentUserId, 'isOwner:', isOwner);
+            // Extract ownerId correctly whether thought.user is string or object
+            const ownerId = thought.user
+              ? typeof thought.user === 'string'
+                ? thought.user
+                : thought.user._id
+              : null;
 
-            const ownerId = thought.user ? String(thought.user) : null;
-const isOwner = ownerId === String(currentUserId);
+            const isOwner = ownerId === currentUserId;
+
+            // Debug logs (remove in production)
+            // console.log('Thought user:', thought.user, 'OwnerId:', ownerId, 'CurrentUserId:', currentUserId, 'isOwner:', isOwner);
 
             return (
               <Box
