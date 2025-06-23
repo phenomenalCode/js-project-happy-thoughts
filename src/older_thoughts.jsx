@@ -50,7 +50,6 @@ const OlderThoughts = () => {
   const handleLike = (thoughtId) => {
     if (!thoughtId || likedSet.has(thoughtId)) return;
 
-    // Optimistically update UI
     setThoughts(prev =>
       prev.map(t =>
         t._id === thoughtId ? { ...t, hearts: t.hearts + 1 } : t
@@ -131,78 +130,78 @@ const OlderThoughts = () => {
       {loading ? (
         <Typography textAlign="center">Loading thoughts...</Typography>
       ) : (
-        thoughts.map(thought => {
-          if (!thought || !thought._id) return null;
+        thoughts
+          .filter(thought => thought != null) // filter out null/undefined
+          .map(thought => {
+            const ownerId = thought.user || null;
+            const isOwner = String(ownerId) === String(currentUserId);
 
-          const ownerId = thought.user?._id || thought.user || null;
-          const isOwner = ownerId === currentUserId;
-
-          return (
-            <Box
-              key={thought._id}
-              p={2}
-              mb={2}
-              border="1px solid #ddd"
-              borderRadius="8px"
-            >
-              <Typography>❤️ {thought.hearts}</Typography>
-              <Typography>{thought.message}</Typography>
-
-              <Button
-                variant="contained"
-                disabled={likedSet.has(thought._id)}
-                onClick={() => handleLike(thought._id)}
-                sx={{
-                  mt: 1,
-                  backgroundColor: 'pink',
-                  '&:hover': { backgroundColor: '#fc7685' },
-                }}
+            return (
+              <Box
+                key={thought._id}
+                p={2}
+                mb={2}
+                border="1px solid #ddd"
+                borderRadius="8px"
               >
-                {likedSet.has(thought._id) ? 'Liked' : '💖 Like'}
-              </Button>
+                <Typography>❤️ {thought.hearts}</Typography>
+                <Typography>{thought.message}</Typography>
 
-              <Box mt={1}>
                 <Button
-                  variant="outlined"
-                  disabled={!isOwner}
-                  onClick={() => {
-                    setEditId(thought._id);
-                    setEditText(thought.message);
-                    setEditOpen(true);
-                  }}
+                  variant="contained"
+                  disabled={likedSet.has(thought._id)}
+                  onClick={() => handleLike(thought._id)}
                   sx={{
-                    mr: 1,
-                    backgroundColor: '#007BFF',
-                    color: '#fff',
-                    '&:hover': { backgroundColor: '#0056b3' },
-                    '&:disabled': {
-                      backgroundColor: '#a6c8ff',
-                      color: '#e1e5ea',
-                    },
+                    mt: 1,
+                    backgroundColor: 'pink',
+                    '&:hover': { backgroundColor: '#fc7685' },
                   }}
                 >
-                  Edit
+                  {likedSet.has(thought._id) ? 'Liked' : '💖 Like'}
                 </Button>
-                <Button
-                  variant="outlined"
-                  disabled={!isOwner}
-                  onClick={() => handleDelete(thought._id)}
-                  sx={{
-                    backgroundColor: '#dc3545',
-                    color: '#fff',
-                    '&:hover': { backgroundColor: '#a71d2a' },
-                    '&:disabled': {
-                      backgroundColor: '#f5aeb4',
-                      color: '#fbe9eb',
-                    },
-                  }}
-                >
-                  Delete
-                </Button>
+
+                <Box mt={1}>
+                  <Button
+                    variant="outlined"
+                    disabled={!isOwner}
+                    onClick={() => {
+                      setEditId(thought._id);
+                      setEditText(thought.message);
+                      setEditOpen(true);
+                    }}
+                    sx={{
+                      mr: 1,
+                      backgroundColor: '#007BFF',
+                      color: '#fff',
+                      '&:hover': { backgroundColor: '#0056b3' },
+                      '&:disabled': {
+                        backgroundColor: '#a6c8ff',
+                        color: '#e1e5ea',
+                      },
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    disabled={!isOwner}
+                    onClick={() => handleDelete(thought._id)}
+                    sx={{
+                      backgroundColor: '#dc3545',
+                      color: '#fff',
+                      '&:hover': { backgroundColor: '#a71d2a' },
+                      '&:disabled': {
+                        backgroundColor: '#f5aeb4',
+                        color: '#fbe9eb',
+                      },
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </Box>
               </Box>
-            </Box>
-          );
-        })
+            );
+          })
       )}
 
       <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
