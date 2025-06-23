@@ -28,7 +28,7 @@ const RandomThoughts = () => {
     );
 
     fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
-      method: "POST",
+      method: "PATCH",
     })
       .then((res) => res.json())
       .then((updatedThought) => {
@@ -39,18 +39,17 @@ const RandomThoughts = () => {
         );
 
         const currentLiked = JSON.parse(localStorage.getItem("likedThoughts")) || [];
-        if (!currentLiked.some((t) => t._id === thoughtId)) {
-          const updatedLiked = [...currentLiked, updatedThought];
-          localStorage.setItem("likedThoughts", JSON.stringify(updatedLiked));
-          setLikedThoughts(new Set(updatedLiked.map((t) => t._id)));
-        }
-      });
+        const updatedLiked = [...currentLiked, updatedThought._id];
+        localStorage.setItem("likedThoughts", JSON.stringify(updatedLiked));
+        setLikedThoughts(new Set(updatedLiked));
+      })
+      .catch((err) => console.error("Like error:", err));
   };
 
   useEffect(() => {
     fetchRandomThoughts();
     const liked = JSON.parse(localStorage.getItem("likedThoughts")) || [];
-    setLikedThoughts(new Set(liked.map((t) => t._id)));
+    setLikedThoughts(new Set(liked));
   }, []);
 
   return (
@@ -90,39 +89,33 @@ const RandomThoughts = () => {
       ) : (
         <Typography>No thoughts available</Typography>
       )}
-     
-     <Box textAlign="center" mt={2}>
- <Box textAlign="center" mt={2}>
-  <Box textAlign="center" mt={2}>
-  <Button
-    variant="outlined"
-    onClick={fetchRandomThoughts}
-    sx={{
-      backgroundColor: '#ffb6c1',
-      color: '#e60026',
-      border: '2px solid #e60026',
-      padding: '0.75rem 1.5rem',
-      fontSize: '1rem',
-      borderRadius: '0.5rem',
-      cursor: 'pointer',
-      marginTop: '1rem',
-      display: 'block',
-      textAlign: 'center',
-      transition: 'background-color 0.3s ease, color 0.3s ease',
-      '&:hover': {
-        backgroundColor: '#ffc8d4',
-        color: '#a3001b',
-      }
-    }}
-  >
-     Refresh Thoughts
-  </Button>
-</Box>
 
-</Box>
-</Box>
-
+      <Box textAlign="center" mt={2}>
+        <Button
+          variant="outlined"
+          onClick={fetchRandomThoughts}
+          sx={{
+            backgroundColor: '#ffb6c1',
+            color: '#e60026',
+            border: '2px solid #e60026',
+            padding: '0.75rem 1.5rem',
+            fontSize: '1rem',
+            borderRadius: '0.5rem',
+            cursor: 'pointer',
+            marginTop: '1rem',
+            display: 'block',
+            textAlign: 'center',
+            transition: 'background-color 0.3s ease, color 0.3s ease',
+            '&:hover': {
+              backgroundColor: '#ffc8d4',
+              color: '#a3001b',
+            }
+          }}
+        >
+          Refresh Thoughts
+        </Button>
       </Box>
+    </Box>
   );
 };
 

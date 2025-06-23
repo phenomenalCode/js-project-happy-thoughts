@@ -46,28 +46,38 @@ const OlderThoughts = () => {
       })
   }, [])
 
-  const handleLike = id => {
-    if (likedSet.has(id)) return
-    setThoughts(prev =>
-      prev.map(t => (t._id === id ? { ...t, hearts: t.hearts + 1 } : t))
-    ) 
-    fetch(
-      `https://js-project-happy-thoughts.onrender.com/thoughts/${id}/like`,
-      { method: 'PATCH' }
-    ).then(updated => {
-        setThoughts(prev =>
-          prev.map(t => (t._id === id ? updated : t))
+  const handleLike = (thoughtId) => {
+  if (!thoughtId || likedSet.has(thoughtId)) return;
+
+  // Optimistically update the UI
+  setThoughts(prevThoughts =>
+    prevThoughts.map(thought =>
+      thought._id === thoughtId ? { ...thought, hearts: thought.hearts + 1 } : thought
+    )
+  );
+
+  fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
+    method: 'PATCH'
+  })
+    .then(res => res.json())
+    .then(updatedThought => {
+      setThoughts(prevThoughts =>
+        prevThoughts.map(thought =>
+          thought._id === thoughtId ? updatedThought : thought
         )
-        const newLiked = new Set(likedSet)
-        newLiked.add(id)
-        setLikedSet(newLiked)
-        localStorage.setItem(
-          'likedThoughts',
-          JSON.stringify([...newLiked])
-        )
-      })
-      .catch(console.error)
-  }
+      );
+
+      // Update localStorage with only thought IDs
+      const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
+      const updatedLiked = [...currentLiked, updatedThought._id];
+      localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
+
+      // Update state
+      setLikedSet(new Set(updatedLiked));
+    })
+    .catch(console.error);
+};
+
 
   const handleEditSave = () => {
     const token = localStorage.getItem('token')
@@ -99,19 +109,18 @@ const OlderThoughts = () => {
       .catch(console.error)
   }
 
-  const handleDelete = id => {
-    const token = localStorage.getItem('token')
-    if (!token) return
-    fetch(
-      `https://js-project-happy-thoughts.onrender.com/thoughts/${id}`,
-      {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+  const handleDelete = (thoughtId) => {
+    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
       }
-    ).then(() => {
-      setThoughts(prev => prev.filter(t => t._id !== id))
-    })
-  }
+    }).then(() => {
+      setThoughts(prev => prev.filter(t => t._id !== thoughtId));
+    });
+  };
+
+
 
   return (
     <Box
