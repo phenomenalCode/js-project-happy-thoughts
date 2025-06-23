@@ -21,65 +21,45 @@ const getCurrentUserIdFromToken = () => {
   }
 };
 
-const OlderThoughts = () => {
-  const [thoughts, setThoughts] = useState([]);
-  const [loading, setLoading] = useState(true);
+const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
+  const [loading, setLoading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editText, setEditText] = useState('');
   const [editId, setEditId] = useState(null);
-  const [likedSet, setLikedSet] = useState(() => {
-  const stored = JSON.parse(localStorage.getItem("likedThoughts")) || [];
-  return new Set(stored);
-});
-
 
   const currentUserId = getCurrentUserIdFromToken();
 
-  useEffect(() => {
-    fetch('https://js-project-happy-thoughts.onrender.com/thoughts')
-      .then(res => res.json())
-      .then(data => {
-        const sorted = data.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        setThoughts(sorted);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
   const handleLike = (thoughtId) => {
-  if (!thoughtId || likedSet.has(thoughtId)) return;
+    if (!thoughtId || likedSet.has(thoughtId)) return;
 
-  // Optimistic UI update
-  setThoughts((prevThoughts) =>
-    prevThoughts.map((thought) =>
-      thought._id === thoughtId
-        ? { ...thought, hearts: (thought.hearts || 0) + 1 }
-        : thought
-    )
-  );
+    // Optimistic UI update
+    setThoughts((prevThoughts) =>
+      prevThoughts.map((thought) =>
+        thought._id === thoughtId
+          ? { ...thought, hearts: (thought.hearts || 0) + 1 }
+          : thought
+      )
+    );
 
-  fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
-    method: "PATCH",
-  })
-    .then((res) => res.json())
-    .then((updatedThought) => {
-      setThoughts((prevThoughts) =>
-        prevThoughts.map((thought) =>
-          thought._id === thoughtId ? updatedThought : thought
-        )
-      );
-
-      const currentLiked = JSON.parse(localStorage.getItem("likedThoughts")) || [];
-      const updatedLiked = [...new Set([...currentLiked, updatedThought._id])];
-
-      localStorage.setItem("likedThoughts", JSON.stringify(updatedLiked));
-      setLikedSet(new Set(updatedLiked));
+    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
+      method: 'PATCH',
     })
-    .catch((err) => console.error("Like error:", err));
-};
+      .then((res) => res.json())
+      .then((updatedThought) => {
+        setThoughts((prevThoughts) =>
+          prevThoughts.map((thought) =>
+            thought._id === thoughtId ? updatedThought : thought
+          )
+        );
 
+        // Update localStorage and likedSet
+        const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
+        const updatedLiked = [...new Set([...currentLiked, updatedThought._id])];
+        localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
+        setLikedSet(new Set(updatedLiked));
+      })
+      .catch((err) => console.error('Like error:', err));
+  };
 
   const handleEditSave = () => {
     const token = localStorage.getItem('token');
@@ -93,10 +73,10 @@ const OlderThoughts = () => {
       },
       body: JSON.stringify({ message: editText }),
     })
-      .then(res => res.json())
-      .then(updated => {
-        setThoughts(prev =>
-          prev.map(t =>
+      .then((res) => res.json())
+      .then((updated) => {
+        setThoughts((prev) =>
+          prev.map((t) =>
             t._id === editId ? { ...t, message: updated.message } : t
           )
         );
@@ -115,7 +95,7 @@ const OlderThoughts = () => {
       },
     })
       .then(() => {
-        setThoughts(prev => prev.filter(t => t._id !== thoughtId));
+        setThoughts((prev) => prev.filter((t) => t._id !== thoughtId));
       })
       .catch(console.error);
   };
@@ -139,8 +119,8 @@ const OlderThoughts = () => {
         <Typography textAlign="center">Loading thoughts...</Typography>
       ) : (
         thoughts
-          .filter(thought => thought != null) // filter out null/undefined
-          .map(thought => {
+          .filter((thought) => thought != null)
+          .map((thought) => {
             const ownerId = thought.user || null;
             const isOwner = String(ownerId) === String(currentUserId);
 
@@ -220,7 +200,7 @@ const OlderThoughts = () => {
             multiline
             minRows={2}
             value={editText}
-            onChange={e => setEditText(e.target.value)}
+            onChange={(e) => setEditText(e.target.value)}
             autoFocus
           />
         </DialogContent>
