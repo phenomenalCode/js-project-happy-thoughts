@@ -50,13 +50,11 @@ const OlderThoughts = () => {
     if (likedSet.has(id)) return
     setThoughts(prev =>
       prev.map(t => (t._id === id ? { ...t, hearts: t.hearts + 1 } : t))
-    )
+    ) 
     fetch(
       `https://js-project-happy-thoughts.onrender.com/thoughts/${id}/like`,
-      { method: 'POST' }
-    )
-      .then(r => r.json())
-      .then(updated => {
+      { method: 'PATCH' }
+    ).then(updated => {
         setThoughts(prev =>
           prev.map(t => (t._id === id ? updated : t))
         )

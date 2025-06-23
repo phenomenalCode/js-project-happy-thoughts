@@ -6,7 +6,7 @@ const RandomThoughts = () => {
   const [likedThoughts, setLikedThoughts] = useState(new Set());
 
   const fetchRandomThoughts = () => {
-    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts")
+    fetch("https://js-project-happy-thoughts.onrender.com/thoughts")
       .then((res) => res.json())
       .then((data) => {
         const shuffled = data.sort(() => 0.5 - Math.random());
@@ -27,7 +27,7 @@ const RandomThoughts = () => {
       )
     );
 
-    fetch(`https://happy-thoughts-api-4ful.onrender.com/thoughts/${thoughtId}/like`, {
+    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
       method: "POST",
     })
       .then((res) => res.json())
