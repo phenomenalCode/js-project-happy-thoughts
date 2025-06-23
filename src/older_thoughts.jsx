@@ -34,8 +34,7 @@ const OlderThoughts = () => {
 
   const currentUserId = getCurrentUserIdFromToken()
 
-  const fetchThoughts = () => {
-    setLoading(true)
+  useEffect(() => {
     fetch('https://js-project-happy-thoughts.onrender.com/thoughts')
       .then(r => r.json())
       .then(data => {
@@ -45,22 +44,24 @@ const OlderThoughts = () => {
         setThoughts(sorted)
         setLoading(false)
       })
-  }
+  }, [])
 
   const handleLike = id => {
     if (likedSet.has(id)) return
     setThoughts(prev =>
       prev.map(t => (t._id === id ? { ...t, hearts: t.hearts + 1 } : t))
     )
-    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${id}/like`, {
-      method: 'POST',
-    })
+    fetch(
+      `https://js-project-happy-thoughts.onrender.com/thoughts/${id}/like`,
+      { method: 'POST' }
+    )
       .then(r => r.json())
       .then(updated => {
         setThoughts(prev =>
           prev.map(t => (t._id === id ? updated : t))
         )
-        const newLiked = new Set(likedSet).add(id)
+        const newLiked = new Set(likedSet)
+        newLiked.add(id)
         setLikedSet(newLiked)
         localStorage.setItem(
           'likedThoughts',
@@ -70,11 +71,6 @@ const OlderThoughts = () => {
       .catch(console.error)
   }
 
-  const handleEdit = thought => {
-    setEditId(thought._id)
-    setEditText(thought.message)
-    setEditOpen(true)
-  }
   const handleEditSave = () => {
     const token = localStorage.getItem('token')
     if (!token || !editText.trim()) return
@@ -89,16 +85,15 @@ const OlderThoughts = () => {
         body: JSON.stringify({ message: editText }),
       }
     )
-      .then(r => {
-        if (!r.ok) throw new Error(r.statusText)
-        return r.json()
-      })
-      .then(updated => {
+      .then(r => r.json())
+      .then(updated =>
         setThoughts(prev =>
           prev.map(t =>
             t._id === editId ? { ...t, message: updated.message } : t
           )
         )
+      )
+      .finally(() => {
         setEditOpen(false)
         setEditText('')
         setEditId(null)
@@ -109,34 +104,40 @@ const OlderThoughts = () => {
   const handleDelete = id => {
     const token = localStorage.getItem('token')
     if (!token) return
-    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(() => {
+    fetch(
+      `https://js-project-happy-thoughts.onrender.com/thoughts/${id}`,
+      {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    ).then(() => {
       setThoughts(prev => prev.filter(t => t._id !== id))
     })
   }
 
-  useEffect(() => {
-    fetchThoughts()
-  }, [])
-
   return (
-    <Box>
-      <Typography variant="h4" align="center">
+    <Box
+      sx={{
+        borderRadius: '1rem',
+        boxShadow: '5px 8px rgba(0,0,0,0.1)',
+        maxWidth: 600,
+        margin: '2rem auto',
+        padding: 2,
+        backgroundColor: '#eaeaeae6',
+      }}
+    >
+      <Typography variant="h4" textAlign="center" gutterBottom>
         Recent Server Thoughts
       </Typography>
 
       {loading ? (
-        <Typography align="center">Loading…</Typography>
+        <Typography textAlign="center">Loading thoughts...</Typography>
       ) : (
         thoughts.map(thought => {
-          // normalize user ID
           const ownerId =
             typeof thought.user === 'object'
               ? thought.user._id
               : thought.user
-
           const isOwner = ownerId === currentUserId
 
           return (
@@ -152,9 +153,13 @@ const OlderThoughts = () => {
 
               <Button
                 variant="contained"
-                onClick={() => handleLike(thought._id)}
                 disabled={likedSet.has(thought._id)}
-                sx={{ mt: 1, backgroundColor: 'pink' }}
+                onClick={() => handleLike(thought._id)}
+                sx={{
+                  mt: 1,
+                  backgroundColor: 'pink',
+                  '&:hover': { backgroundColor: '#fc7685' },
+                }}
               >
                 {likedSet.has(thought._id) ? 'Liked' : '💖 Like'}
               </Button>
@@ -162,16 +167,38 @@ const OlderThoughts = () => {
               <Box mt={1}>
                 <Button
                   variant="outlined"
-                  onClick={() => handleEdit(thought)}
                   disabled={!isOwner}
-                  sx={{ mr: 1 }}
+                  onClick={() => {
+                    setEditId(thought._id)
+                    setEditText(thought.message)
+                    setEditOpen(true)
+                  }}
+                  sx={{
+                    mr: 1,
+                    backgroundColor: '#007BFF',
+                    color: '#fff',
+                    '&:hover': { backgroundColor: '#0056b3' },
+                    '&:disabled': {
+                      backgroundColor: '#a6c8ff',
+                      color: '#e1e5ea',
+                    },
+                  }}
                 >
                   Edit
                 </Button>
                 <Button
                   variant="outlined"
-                  onClick={() => handleDelete(thought._id)}
                   disabled={!isOwner}
+                  onClick={() => handleDelete(thought._id)}
+                  sx={{
+                    backgroundColor: '#dc3545',
+                    color: '#fff',
+                    '&:hover': { backgroundColor: '#a71d2a' },
+                    '&:disabled': {
+                      backgroundColor: '#f5aeb4',
+                      color: '#fbe9eb',
+                    },
+                  }}
                 >
                   Delete
                 </Button>
@@ -187,9 +214,10 @@ const OlderThoughts = () => {
           <TextField
             fullWidth
             multiline
+            minRows={2}
             value={editText}
             onChange={e => setEditText(e.target.value)}
-            minRows={2}
+            autoFocus
           />
         </DialogContent>
         <DialogActions>
