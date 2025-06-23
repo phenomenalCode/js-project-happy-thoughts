@@ -17,12 +17,12 @@ const RandomThoughts = () => {
   };
 
   const handleLike = (thoughtId) => {
-    if (likedThoughts.has(thoughtId)) return;
+    if (!thoughtId || likedThoughts.has(thoughtId)) return;
 
     setThoughts((prevThoughts) =>
       prevThoughts.map((thought) =>
         thought._id === thoughtId
-          ? { ...thought, hearts: thought.hearts + 1 }
+          ? { ...thought, hearts: (thought.hearts || 0) + 1 }
           : thought
       )
     );
@@ -67,25 +67,30 @@ const RandomThoughts = () => {
       <Typography variant="h4" textAlign="center" gutterBottom>
         Random Thoughts
       </Typography>
+
       {thoughts.length > 0 ? (
-        thoughts.map((thought) => (
-          <Box key={thought._id} p={2} mb={2} border="1px solid #ddd" borderRadius="8px">
-            <Typography>❤️ {thought.hearts}</Typography>
-            <Typography>{thought.message}</Typography>
-            <Button
-              variant="contained"
-              onClick={() => handleLike(thought._id)}
-              disabled={likedThoughts.has(thought._id)}
-              sx={{
-                mt: 1,
-                backgroundColor: "pink",
-                "&:hover": { backgroundColor: "#fc7685" },
-              }}
-            >
-              {likedThoughts.has(thought._id) ? "Liked" : "💖 Like"}
-            </Button>
-          </Box>
-        ))
+        thoughts.map((thought) => {
+          if (!thought || !thought._id) return null;
+
+          return (
+            <Box key={thought._id} p={2} mb={2} border="1px solid #ddd" borderRadius="8px">
+              <Typography>❤️ {thought.hearts ?? 0}</Typography>
+              <Typography>{thought.message}</Typography>
+              <Button
+                variant="contained"
+                onClick={() => handleLike(thought._id)}
+                disabled={likedThoughts.has(thought._id)}
+                sx={{
+                  mt: 1,
+                  backgroundColor: "pink",
+                  "&:hover": { backgroundColor: "#fc7685" },
+                }}
+              >
+                {likedThoughts.has(thought._id) ? "Liked" : "💖 Like"}
+              </Button>
+            </Box>
+          );
+        })
       ) : (
         <Typography>No thoughts available</Typography>
       )}
@@ -95,21 +100,18 @@ const RandomThoughts = () => {
           variant="outlined"
           onClick={fetchRandomThoughts}
           sx={{
-            backgroundColor: '#ffb6c1',
-            color: '#e60026',
-            border: '2px solid #e60026',
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            borderRadius: '0.5rem',
-            cursor: 'pointer',
-            marginTop: '1rem',
-            display: 'block',
-            textAlign: 'center',
-            transition: 'background-color 0.3s ease, color 0.3s ease',
-            '&:hover': {
-              backgroundColor: '#ffc8d4',
-              color: '#a3001b',
-            }
+            backgroundColor: "#ffb6c1",
+            color: "#e60026",
+            border: "2px solid #e60026",
+            padding: "0.75rem 1.5rem",
+            fontSize: "1rem",
+            borderRadius: "0.5rem",
+            marginTop: "1rem",
+            transition: "all 0.3s ease",
+            "&:hover": {
+              backgroundColor: "#ffc8d4",
+              color: "#a3001b",
+            },
           }}
         >
           Refresh Thoughts
