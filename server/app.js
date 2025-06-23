@@ -11,7 +11,7 @@ const thoughtRoutes = require('./routes/thought_routes'); // your thoughts route
 // Middleware
 const allowedOrigins = [ // backend test
   'https://js-project-happy-thoughts.onrender.com', // live backend
-  'https://happy-thoughts-darius.netlify.app/', // frontend
+  'https://happy-thoughts-darius.netlify.app', // frontend
 ];
 
 app.use(cors({
