@@ -5,6 +5,17 @@ import LikedThoughts from "./liked-thoughts.jsx";
 import RandomThoughts from "./random-thoughts.jsx";
 import RegisterForm from "./registration.jsx";
 import LoginForm from "./login.jsx";
+const getCurrentUserIdFromToken = (token) => {
+  if (!token) return null;
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64));
+    return payload.userId || payload.id || null;
+  } catch (e) {
+    console.error("Failed to decode token:", e);
+    return null;
+  }
+};
 
 export const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -17,15 +28,7 @@ export const App = () => {
 });
 
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-const getCurrentUserIdFromToken = (token) => {
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.userId || payload.id || null;
-  } catch {
-    return null;
-  }
-};
+
 
   // Fetch thoughts from API
   const fetchThoughts = () => {
