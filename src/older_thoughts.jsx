@@ -134,18 +134,15 @@ const OlderThoughts = () => {
       }}
     >
       <Typography variant="h4" textAlign="center" gutterBottom>
-        Recent Server Thoughts
-      </Typography>
+  Recent Server Thoughts
+</Typography>
 
-      {loading ? (
-        <Typography textAlign="center">Loading thoughts...</Typography>
-      ) : (
-        thoughts.map(thought => {
-          const ownerId =
-            typeof thought.user === 'object'
-              ? thought.user._id
-              : thought.user
-          const isOwner = ownerId === currentUserId
+{loading ? (
+  <Typography textAlign="center">Loading thoughts...</Typography>
+) : (
+  thoughts.map(thought => {
+    const ownerId = thought.user; // always a string
+    const isOwner = ownerId === currentUserId;
 
           return (
             <Box
