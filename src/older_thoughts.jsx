@@ -9,20 +9,19 @@ import {
   DialogActions,
   TextField,
 } from '@mui/material'
-
-const getCurrentUserIdFromToken = () => {
-  const token = localStorage.getItem('token')
-  if (!token) return null
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return payload.userId || payload.id
-  } catch {
-    return null
-  }
-}
-
 const OlderThoughts = () => {
-  const [thoughts, setThoughts] = useState([])
+  const [thoughts, setThoughts] = useState([
+    {
+      _id: '',
+      message: '',
+      hearts: 0,
+      createdAt: '',
+      category: '',
+      tags: [],
+      user: '',
+      __v: 0,
+    },
+  ])
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
   const [editText, setEditText] = useState('')
@@ -141,7 +140,7 @@ const OlderThoughts = () => {
   <Typography textAlign="center">Loading thoughts...</Typography>
 ) : (
   thoughts.map(thought => {
-    const ownerId = thought.user; // always a string
+    const ownerId = thought.user; // always a string  
     const isOwner = ownerId === currentUserId;
 
           return (
