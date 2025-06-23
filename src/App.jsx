@@ -9,11 +9,23 @@ import LoginForm from "./login.jsx";
 export const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [thoughts, setThoughts] = useState([]);
-  const [likedSet, setLikedSet] = useState(() => {
-    const stored = JSON.parse(localStorage.getItem("likedThoughts")) || [];
-    return new Set(stored);
-  });
+ const [likedSet, setLikedSet] = useState(() => {
+  const token = localStorage.getItem("token");
+  const userId = getCurrentUserIdFromToken(token);
+  const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
+  return new Set(stored);
+});
+
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+const getCurrentUserIdFromToken = (token) => {
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.userId || payload.id || null;
+  } catch {
+    return null;
+  }
+};
 
   // Fetch thoughts from API
   const fetchThoughts = () => {
