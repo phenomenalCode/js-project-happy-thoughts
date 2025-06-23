@@ -184,120 +184,82 @@ const OlderThoughts = () => {
   }, [editOpen, editId, thoughts]);
 
   return (
-    <Box
-      sx={{
-        borderRadius: '1rem',
-        boxShadow: '5px 8px rgba(0, 0, 0, 10)',
-        fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-        maxWidth: 600,
-        margin: '2rem auto',
-        padding: 2,
-        backgroundColor: '#eaeaeae6',
-      }}
-    ><Typography variant="h4" textAlign="center" gutterBottom>
-  Recent Server Thoughts
-</Typography>
+    <>
+      {loading ? (
+        <Typography textAlign="center">Loading thoughts...</Typography>
+      ) : (
+        thoughts.map((thought) => {
+          const isOwner = String(thought.user) === currentUserId;
 
-{loading ? (
-  <Typography textAlign="center">Loading thoughts...</Typography>
-) : (
-  thoughts.map((thought) => (
-    <Box
-      key={thought._id}
-      p={2}
-      mb={2}
-      border="1px solid #ddd"
-      borderRadius="8px"
-    >
-      <Typography>❤️ {thought.hearts}</Typography>
-      <Typography>{thought.message}</Typography>
+          return (
+            <Box key={thought._id} p={2} mb={2} border="1px solid #ddd" borderRadius="8px">
+              <Typography>❤️ {thought.hearts}</Typography>
+              <Typography>{thought.message}</Typography>
 
-      <Button
-        variant="contained"
-        onClick={() => handleLike(thought._id)}
-        disabled={!thought._id || likedThoughts.has(thought._id)}
-        sx={{
-          mt: 1,
-          backgroundColor: 'pink',
-          '&:hover': { backgroundColor: '#fc7685' },
-        }}
-      >
-        {!thought._id
-          ? 'Cannot Like'
-          : likedThoughts.has(thought._id)
-          ? 'Liked'
-          : '💖 Like'}
-      </Button>
+              <Button
+                variant="contained"
+                onClick={() => handleLike(thought._id)}
+                disabled={!thought._id || likedThoughts.has(thought._id)}
+                sx={{ mt: 1, backgroundColor: 'pink', '&:hover': { backgroundColor: '#fc7685' } }}
+              >
+                {likedThoughts.has(thought._id) ? 'Liked' : '💖 Like'}
+              </Button>
 
-      <Box mt={1}>
-        <Button
-          onClick={() => handleEdit(thought)}
-          sx={{
-            mr: 1,
-            backgroundColor: '#007BFF',
-            color: '#FFFFFF',
-            '&:hover': {
-              backgroundColor: '#0056b3',
-            },
-            '&:disabled': {
-              backgroundColor: '#a6c8ff',
-              color: '#e1e5ea',
-            },
-          }}
-          variant="outlined"
-          disabled={!currentUserId}
-        >
-          Edit
-        </Button>
+              <Box mt={1}>
+                <Button
+                  onClick={() => handleEdit(thought)}
+                  disabled={!isOwner}
+                  variant="outlined"
+                  sx={{
+                    mr: 1,
+                    backgroundColor: '#007BFF',
+                    color: '#fff',
+                    '&:hover': { backgroundColor: '#0056b3' },
+                    '&:disabled': { backgroundColor: '#a6c8ff', color: '#e1e5ea' },
+                  }}
+                >
+                  Edit
+                </Button>
 
-        <Button
-          onClick={() => handleDelete(thought._id)}
-          sx={{
-            backgroundColor: '#dc3545',
-            color: '#FFFFFF',
-            '&:hover': {
-              backgroundColor: '#a71d2a',
-            },
-            '&:disabled': {
-              backgroundColor: '#f5aeb4',
-              color: '#fbe9eb',
-            },
-          }}
-          variant="outlined"
-          disabled={!currentUserId}
-        >
-          Delete
-        </Button>
-      </Box>
-    </Box>
-  ))
-)}
+                <Button
+                  onClick={() => handleDelete(thought._id)}
+                  disabled={!isOwner}
+                  variant="outlined"
+                  sx={{
+                    backgroundColor: '#dc3545',
+                    color: '#fff',
+                    '&:hover': { backgroundColor: '#a71d2a' },
+                    '&:disabled': { backgroundColor: '#f5aeb4', color: '#fbe9eb' },
+                  }}
+                >
+                  Delete
+                </Button>
+              </Box>
+            </Box>
+          );
+        })
+      )}
 
-      {/* Edit Modal */}
       <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
         <DialogTitle>Edit Thought</DialogTitle>
         <DialogContent>
           <TextField
-            autoFocus
+            value={editText}
+            onChange={e => setEditText(e.target.value)}
             fullWidth
-            variant="standard"
-            value={editText ?? ''}
-            onChange={(e) => setEditText(e.target.value)}
+            multiline
+            minRows={2}
+            maxRows={6}
+            autoFocus
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleEditSave}
-            variant="contained"
-            disabled={!editId || !editText.trim()}
-          >
+          <Button onClick={handleEditSave} variant="contained" color="primary">
             Save
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </>
   );
-};
-
-export default OlderThoughts;
+}
