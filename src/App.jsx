@@ -33,9 +33,12 @@ export const App = () => {
   }, [token]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-  };
+  localStorage.removeItem("token");
+  localStorage.removeItem("likedThoughts");  // Clear liked thoughts here
+  setToken(null);
+  setLikedSet(new Set()); // Reset likedSet in state too
+};
+
 
   const handleLogin = (newToken) => {
     localStorage.setItem("token", newToken);
