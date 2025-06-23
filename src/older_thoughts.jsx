@@ -194,36 +194,45 @@ const OlderThoughts = () => {
         padding: 2,
         backgroundColor: '#eaeaeae6',
       }}
+    ><Typography variant="h4" textAlign="center" gutterBottom>
+  Recent Server Thoughts
+</Typography>
+
+{loading ? (
+  <Typography textAlign="center">Loading thoughts...</Typography>
+) : (
+  thoughts.map((thought) => (
+    <Box
+      key={thought._id}
+      p={2}
+      mb={2}
+      border="1px solid #ddd"
+      borderRadius="8px"
     >
-      <Typography variant="h4" textAlign="center" gutterBottom>
-        Recent Server Thoughts
-      </Typography>
+      <Typography>❤️ {thought.hearts}</Typography>
+      <Typography>{thought.message}</Typography>
 
-      {loading ? (
-        <Typography textAlign="center">Loading thoughts...</Typography>
-      ) : (
-        thoughts.map((thought) => (
-          <Box key={thought._id} p={2} mb={2} border="1px solid #ddd" borderRadius="8px">
-            <Typography>❤️ {thought.hearts}</Typography>
-            <Typography>{thought.message}</Typography>
+      <Button
+        variant="contained"
+        onClick={() => handleLike(thought._id)}
+        disabled={!thought._id || likedThoughts.has(thought._id)}
+        sx={{
+          mt: 1,
+          backgroundColor: 'pink',
+          '&:hover': { backgroundColor: '#fc7685' },
+        }}
+      >
+        {!thought._id
+          ? 'Cannot Like'
+          : likedThoughts.has(thought._id)
+          ? 'Liked'
+          : '💖 Like'}
+      </Button>
 
-            <Button
-              variant="contained"
-              onClick={() => handleLike(thought._id)}
-              disabled={likedThoughts.has(thought._id)}
-              sx={{
-                mt: 1,
-                backgroundColor: 'pink',
-                '&:hover': { backgroundColor: '#fc7685' },
-              }}
-            >
-              {!thought._id
-                ? 'Cannot Like'
-                : likedThoughts.has(thought._id)
-                ? 'Liked'
-                : '💖 Like'}
-            </Button>
-
+      {/* …your Edit/Delete buttons here… */}
+    </Box>
+  ))
+)}
             <Box mt={1}>
               <Button
                 onClick={() => handleEdit(thought)}
@@ -240,13 +249,13 @@ const OlderThoughts = () => {
                   },
                 }}
                 variant="outlined"
-                disabled={thought.user !== currentUserId}
+                disabled={thoughts.user !== currentUserId}
               >
                 Edit
               </Button>
 
               <Button
-                onClick={() => handleDelete(thought._id)}
+                onClick={() => handleDelete(thoughts.user !== currentUserId)}
                 sx={{
                   backgroundColor: '#dc3545',
                   color: '#FFFFFF',
@@ -259,7 +268,7 @@ const OlderThoughts = () => {
                   },
                 }}
                 variant="outlined"
-                disabled={!thought._id}
+                disabled={thought.user !== currentUserId}
               >
                 Delete
               </Button>
