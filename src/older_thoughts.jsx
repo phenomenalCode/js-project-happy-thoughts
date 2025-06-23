@@ -210,7 +210,7 @@ const OlderThoughts = () => {
             <Button
               variant="contained"
               onClick={() => handleLike(thought._id)}
-              disabled={{likedThoughts.has(thought._id)}}
+              disabled={likedThoughts.has(thought._id)}
               sx={{
                 mt: 1,
                 backgroundColor: 'pink',
