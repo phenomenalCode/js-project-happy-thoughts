@@ -138,6 +138,9 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
         thoughts
           .filter((thought) => thought != null)
           .map((thought) => {
+            console.log('Thought user:', thought.user, 'Type:', typeof thought.user);
+console.log('OwnerId:', ownerId, 'CurrentUserId:', currentUserId, 'isOwner:', isOwner);
+
             const ownerId = thought.user ? String(thought.user) : null;
 const isOwner = ownerId === String(currentUserId);
 
