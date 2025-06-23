@@ -95,25 +95,28 @@ router.delete('/:id', authenticate, async (req, res) => {
 // -------------------------
 // LIKE a Thought
 // -------------------------
+
 router.patch('/:id/like', authenticate, async (req, res) => {
   const { id } = req.params;
 
   try {
-    const thought = await Thought.findById(id);
+    const updatedThought = await Thought.findByIdAndUpdate(
+      id,
+      { $inc: { hearts: 1 } },
+      { new: true }
+    ).populate('user'); // Populate user info
 
-    if (!thought) {
+    if (!updatedThought) {
       return res.status(404).json({ message: 'Thought not found' });
     }
 
-    thought.hearts += 1;
-    await thought.save();
-
-    res.status(200).json(thought);
+    res.status(200).json(updatedThought);
   } catch (err) {
     console.error('Error liking thought:', err);
     res.status(500).json({ message: 'Failed to like thought', error: err.message });
   }
 });
+
 
 // -------------------------
 // GET a Thought by ID

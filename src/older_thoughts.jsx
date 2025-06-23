@@ -56,9 +56,16 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
     .then((res) => res.json())
     .then((updatedThought) => {
       setThoughts((prevThoughts) =>
-        prevThoughts.map((thought) =>
-          thought._id === thoughtId ? updatedThought : thought
-        )
+        prevThoughts.map((thought) => {
+          if (thought._id === thoughtId) {
+            return {
+              ...thought,
+              ...updatedThought,
+              user: thought.user || updatedThought.user, // Prefer local user ref
+            };
+          }
+          return thought;
+        })
       );
 
       // Update localStorage and likedSet
