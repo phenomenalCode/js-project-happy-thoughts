@@ -240,7 +240,7 @@ const OlderThoughts = () => {
                   },
                 }}
                 variant="outlined"
-                disabled={!thought._id}
+                disabled={thought.user !== currentUserId}
               >
                 Edit
               </Button>
