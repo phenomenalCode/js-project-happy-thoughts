@@ -24,11 +24,16 @@ const getCurrentUserIdFromToken = () => {
 
 const OlderThoughts = () => {
   const [thoughts, setThoughts] = useState([]);
-  const [likedThoughts, setLikedThoughts] = useState(new Set());
+  
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [editText, setEditText] = useState("");
   const [editId, setEditId] = useState(null);
+  const [likedThoughts, setLikedThoughts] = useState(() => {
+  const stored = JSON.parse(localStorage.getItem('likedThoughts')) || [];
+  return new Set(stored);
+});
+
   const currentUserId = getCurrentUserIdFromToken();
 
   const fetchThoughts = () => {
@@ -42,29 +47,61 @@ const OlderThoughts = () => {
       });
   };
 
+  // const handleLike = (thoughtId) => {
+  //   if (!thoughtId || likedThoughts.has(thoughtId)) return;
+   
+  //   setThoughts(prev =>
+  //     prev.map(t =>
+  //       t._id === thoughtId ? { ...t, hearts: t.hearts + 1 } : t
+  //     )
+  //   );
+
+  //   fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
+  //     method: 'POST',
+  //   })
+  //     .then(res => res.json())
+  //     .then(updated => {
+  //       setThoughts(prev =>
+  //         prev.map(t => (t._id === thoughtId ? updated : t))
+  //       );
+  //       const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
+  //       const updatedLiked = [...currentLiked, updated];
+  //       localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
+  //       setLikedThoughts(new Set(updatedLiked.map(t => t._id)));
+  //     });
+  // };
   const handleLike = (thoughtId) => {
-    if (!thoughtId || likedThoughts.has(thoughtId)) return;
+  if (!thoughtId || likedThoughts.has(thoughtId)) return;
 
-    setThoughts(prev =>
-      prev.map(t =>
-        t._id === thoughtId ? { ...t, hearts: t.hearts + 1 } : t
-      )
-    );
+  // Optimistic UI update
+  setThoughts(prev =>
+    prev.map(t =>
+      t._id === thoughtId ? { ...t, hearts: t.hearts + 1 } : t
+    )
+  );
 
-    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
-      method: 'POST',
+  fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
+    method: 'POST',
+  })
+    .then(res => res.json())
+    .then(updated => {
+      // Update UI with correct data from backend
+      setThoughts(prev =>
+        prev.map(t => (t._id === thoughtId ? updated : t))
+      );
+
+      // Save only IDs
+      const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
+      const updatedLiked = [...new Set([...currentLiked, updated._id])];
+
+      localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
+      setLikedThoughts(new Set(updatedLiked));
     })
-      .then(res => res.json())
-      .then(updated => {
-        setThoughts(prev =>
-          prev.map(t => (t._id === thoughtId ? updated : t))
-        );
-        const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
-        const updatedLiked = [...currentLiked, updated];
-        localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
-        setLikedThoughts(new Set(updatedLiked.map(t => t._id)));
-      });
-  };
+    .catch(err => {
+      console.error('Failed to like thought:', err);
+    });
+};
+
 
   const handleEdit = (thought) => {
     if (!thought?._id) return;
@@ -173,7 +210,7 @@ const OlderThoughts = () => {
             <Button
               variant="contained"
               onClick={() => handleLike(thought._id)}
-              disabled={!thought._id || likedThoughts.has(thought._id)}
+              disabled={{likedThoughts.has(thought._id)}}
               sx={{
                 mt: 1,
                 backgroundColor: 'pink',
