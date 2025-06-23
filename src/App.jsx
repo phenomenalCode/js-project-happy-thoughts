@@ -32,19 +32,26 @@ export const App = () => {
     }
   }, [token]);
 
-  const handleLogout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("likedThoughts");  // Clear liked thoughts here
-  setToken(null);
-  setLikedSet(new Set()); // Reset likedSet in state too
+ const handleLogin = (newToken) => {
+  localStorage.setItem("token", newToken);
+  setToken(newToken);
+
+  // Load user-specific liked thoughts
+  const userId = getCurrentUserIdFromToken(newToken);
+  const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
+  setLikedSet(new Set(stored));
 };
 
+const handleLogout = () => {
+  const userId = getCurrentUserIdFromToken(token);
+  if (userId) {
+    localStorage.setItem(`likedThoughts_${userId}`, JSON.stringify([...likedSet]));
+  }
 
-  const handleLogin = (newToken) => {
-    localStorage.setItem("token", newToken);
-    setToken(newToken);
-  };
-
+  localStorage.removeItem("token");
+  setToken(null);
+  setLikedSet(new Set());
+};
   if (!token) {
     return (
       <div className="auth-container">
