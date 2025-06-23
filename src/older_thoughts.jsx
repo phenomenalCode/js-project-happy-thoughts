@@ -33,7 +33,7 @@ const OlderThoughts = () => {
 
   const fetchThoughts = () => {
     setLoading(true);
-    fetch("https://happy-thoughts-api-4ful.onrender.com/thoughts")
+    fetch("https://js-project-happy-thoughts.onrender.com/thoughts")
       .then(res => res.json())
       .then(data => {
         const sortedByTime = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -51,7 +51,7 @@ const OlderThoughts = () => {
       )
     );
 
-    fetch(`https://happy-thoughts-api-4ful.onrender.com/thoughts/${thoughtId}/like`, {
+    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
       method: 'POST',
     })
       .then(res => res.json())
@@ -79,7 +79,7 @@ const OlderThoughts = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch(`https://happy-thoughts-api-4ful.onrender.com/thoughts/${editId.trim()}`, {
+    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${editId.trim()}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -110,7 +110,7 @@ const OlderThoughts = () => {
   };
 
   const handleDelete = (thoughtId) => {
-    fetch(`https://happy-thoughts-api-4ful.onrender.com/thoughts/${thoughtId}`, {
+    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
