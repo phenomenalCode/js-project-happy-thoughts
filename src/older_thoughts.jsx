@@ -141,10 +141,11 @@ const OlderThoughts = () => {
   <Typography textAlign="center">Loading thoughts...</Typography>
 ) : (
   thoughts.map(thought => {
-    const ownerId = thought.user?._id || thought.user || null;
+      if (!thought || !thought._id) return null; // <-- Add this check
 
-    const isOwner = ownerId === currentUserId;
-;
+  const ownerId = thought.user?._id || thought.user || null;
+  const isOwner = ownerId === currentUserId;
+
 
           return (
             <Box
