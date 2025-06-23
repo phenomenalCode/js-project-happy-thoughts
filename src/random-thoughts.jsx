@@ -16,41 +16,6 @@ const RandomThoughts = () => {
       .catch((error) => console.error("Error fetching thoughts:", error));
   };
 
-  const handleLike = (thoughtId) => {
-    if (!thoughtId || likedThoughts.has(thoughtId)) return;
-
-    setThoughts((prevThoughts) =>
-      prevThoughts.map((thought) =>
-        thought._id === thoughtId
-          ? { ...thought, hearts: (thought.hearts || 0) + 1 }
-          : thought
-      )
-    );
-
-    fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}/like`, {
-      method: "PATCH",
-    })
-      .then((res) => res.json())
-      .then((updatedThought) => {
-        setThoughts((prevThoughts) =>
-          prevThoughts.map((thought) =>
-            thought._id === thoughtId ? updatedThought : thought
-          )
-        );
-
-        const currentLiked = JSON.parse(localStorage.getItem("likedThoughts")) || [];
-        const updatedLiked = [...currentLiked, updatedThought._id];
-        localStorage.setItem("likedThoughts", JSON.stringify(updatedLiked));
-        setLikedThoughts(new Set(updatedLiked));
-      })
-      .catch((err) => console.error("Like error:", err));
-  };
-
-  useEffect(() => {
-    fetchRandomThoughts();
-    const liked = JSON.parse(localStorage.getItem("likedThoughts")) || [];
-    setLikedThoughts(new Set(liked));
-  }, []);
 
   return (
     <Box
