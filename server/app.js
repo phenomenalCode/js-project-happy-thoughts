@@ -7,6 +7,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const authRoutes = require('./routes/login_out');       // your auth routes
 const thoughtRoutes = require('./routes/thought_routes'); // your thoughts routes
+const listEndpoints = require('express-list-endpoints');
+
+app.get('/endpoints', (req, res) => {
+  res.json(listEndpoints(app));
+});
 
 // Middleware
 const allowedOrigins = [ // backend test
