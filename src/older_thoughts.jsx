@@ -138,8 +138,8 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
         thoughts
           .filter((thought) => thought != null)
           .map((thought) => {
-            const ownerId = thought.user || null;
-            const isOwner = String(ownerId) === String(currentUserId);
+            const ownerId = thought.user ? String(thought.user) : null;
+const isOwner = ownerId === String(currentUserId);
 
             return (
               <Box
