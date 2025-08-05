@@ -1,2 +1,3 @@
 # Happy Thoughts
-NETLIFY LINK: https://projhappy-app.netlify.app/
+NETLIFY LINK: https://happy-thoughts-darius.netlify.app/
+
