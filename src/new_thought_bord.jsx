@@ -84,7 +84,7 @@ const NewThoughtBoard = ({ prependThought }) => {
     setQuestionIndex((prevIndex) => (prevIndex + 1) % questionArr.length);
   };
 
-  return (
+ return (
   <Box
     component="section"
     role="region"
@@ -99,21 +99,16 @@ const NewThoughtBoard = ({ prependThought }) => {
       textAlign: "center",
       fontSize: "1.5rem",
       boxShadow: "5px 8px rgba(0, 0, 0, 0.1)",
-
-      // Reserve vertical space for heading to avoid jumps
-      minHeight: '4.5rem', // adjust to your heading height + padding
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-start',
     }}
   >
+    {/* Reserve space for heading to avoid vertical jump */}
     <Typography
       variant="h3"
       gutterBottom
       id="new-thought-heading"
       aria-live="polite"
       sx={{
-        minHeight: '3rem', // reserve height to avoid jumping on question change
+        minHeight: "3.6rem", // reserve height roughly equal to your heading height + gutter
         lineHeight: 1.2,
       }}
     >
@@ -127,8 +122,9 @@ const NewThoughtBoard = ({ prependThought }) => {
     <List
       aria-label="Your submitted thoughts"
       sx={{
-        minHeight: '8rem',  // reserve vertical space so the list doesn’t cause jumps
-        overflowY: 'auto',  // add scroll if list gets too big
+        // Optionally fix height or maxHeight if your list changes height drastically
+        // maxHeight: 200,
+        // overflowY: 'auto',
       }}
     >
       {messages.map((entry, i) => (
@@ -138,7 +134,7 @@ const NewThoughtBoard = ({ prependThought }) => {
       ))}
     </List>
 
-    <form onSubmit={handleSubmit} style={{ marginTop: 'auto' }}>
+    <form onSubmit={handleSubmit}>
       <TextField
         fullWidth
         variant="outlined"
@@ -156,7 +152,6 @@ const NewThoughtBoard = ({ prependThought }) => {
           sx={{
             backgroundColor: "#fc7685",
             borderRadius: "99999px",
-            minWidth: '140px', // fix button width to avoid size changes on disabled
             "&:hover": { backgroundColor: "#e05568" },
           }}
         >
@@ -169,7 +164,6 @@ const NewThoughtBoard = ({ prependThought }) => {
             backgroundColor: "#fc7685",
             color: "white",
             borderRadius: "99999px",
-            minWidth: '140px', // same fixed width for consistency
             "&:hover": { backgroundColor: "#e05568" },
           }}
         >
@@ -178,8 +172,8 @@ const NewThoughtBoard = ({ prependThought }) => {
       </Box>
     </form>
   </Box>
-);
-}
+)
+};
 
 
 export default NewThoughtBoard;
