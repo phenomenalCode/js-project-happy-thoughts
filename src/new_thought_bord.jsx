@@ -85,84 +85,101 @@ const NewThoughtBoard = ({ prependThought }) => {
   };
 
   return (
-    <Box
-      component="section"
-      role="region"
-      aria-labelledby="new-thought-heading"
+  <Box
+    component="section"
+    role="region"
+    aria-labelledby="new-thought-heading"
+    sx={{
+      border: "2px solid black",
+      backgroundColor: "#eaeaeae6",
+      padding: 3,
+      borderRadius: 2,
+      maxWidth: 600,
+      margin: "auto",
+      textAlign: "center",
+      fontSize: "1.5rem",
+      boxShadow: "5px 8px rgba(0, 0, 0, 0.1)",
+
+      // Reserve vertical space for heading to avoid jumps
+      minHeight: '4.5rem', // adjust to your heading height + padding
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+    }}
+  >
+    <Typography
+      variant="h3"
+      gutterBottom
+      id="new-thought-heading"
+      aria-live="polite"
       sx={{
-        border: "2px solid black",
-        backgroundColor: "#eaeaeae6",
-        padding: 3,
-        borderRadius: 2,
-        maxWidth: "600px",
-        margin: "auto",
-        textAlign: "center",
-        fontSize: "1.5rem",
-        boxShadow: "5px 8px rgba(0, 0, 0, 10)",
+        minHeight: '3rem', // reserve height to avoid jumping on question change
+        lineHeight: 1.2,
       }}
     >
-      <Typography
-        variant="h4"
-        gutterBottom
-        id="new-thought-heading"
-        aria-live="polite"
-      >
-        {questionArr[questionIndex]}
-      </Typography>
+      {questionArr[questionIndex]}
+    </Typography>
 
-      <Typography variant="h6" gutterBottom>
-        Your Submitted Messages
-      </Typography>
-      <List aria-label="Your submitted thoughts">
-        {messages.map((entry, i) => (
-          <ListItem key={i} alignItems="flex-start">
-            <ListItemText
-              primary={entry.question}
-              secondary={entry.message}
-            />
-          </ListItem>
-        ))}
-      </List>
+    <Typography variant="h4" gutterBottom>
+      Your Submitted Messages
+    </Typography>
 
-      <form onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          aria-label="Type your message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          sx={{ marginBottom: 2 }}
-        />
+    <List
+      aria-label="Your submitted thoughts"
+      sx={{
+        minHeight: '8rem',  // reserve vertical space so the list doesn’t cause jumps
+        overflowY: 'auto',  // add scroll if list gets too big
+      }}
+    >
+      {messages.map((entry, i) => (
+        <ListItem key={i} alignItems="flex-start">
+          <ListItemText primary={entry.question} secondary={entry.message} />
+        </ListItem>
+      ))}
+    </List>
 
-        <Box display="flex" justifyContent="center" gap={2}>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={!user || message.trim() === ""}
-            sx={{
-              backgroundColor: "#fc7685",
-              borderRadius: "99999px",
-              "&:hover": { backgroundColor: "#e05568" },
-            }}
-          >
-            Send a happy thought ❤️
-          </Button>
-          <Button
-            type="button"
-            onClick={handleQuestion}
-            sx={{
-              backgroundColor: "#fc7685",
-              color: "white",
-              borderRadius: "99999px",
-              "&:hover": { backgroundColor: "#e05568" },
-            }}
-          >
-            Next Question
-          </Button>
-        </Box>
-      </form>
-    </Box>
-  );
-};
+    <form onSubmit={handleSubmit} style={{ marginTop: 'auto' }}>
+      <TextField
+        fullWidth
+        variant="outlined"
+        aria-label="Type your message"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        sx={{ marginBottom: 2 }}
+      />
+
+      <Box display="flex" justifyContent="center" gap={2}>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={!user || message.trim() === ""}
+          sx={{
+            backgroundColor: "#fc7685",
+            borderRadius: "99999px",
+            minWidth: '140px', // fix button width to avoid size changes on disabled
+            "&:hover": { backgroundColor: "#e05568" },
+          }}
+        >
+          Send a happy thought ❤️
+        </Button>
+        <Button
+          type="button"
+          onClick={handleQuestion}
+          sx={{
+            backgroundColor: "#fc7685",
+            color: "white",
+            borderRadius: "99999px",
+            minWidth: '140px', // same fixed width for consistency
+            "&:hover": { backgroundColor: "#e05568" },
+          }}
+        >
+          Next Question
+        </Button>
+      </Box>
+    </form>
+  </Box>
+);
+}
+
 
 export default NewThoughtBoard;
