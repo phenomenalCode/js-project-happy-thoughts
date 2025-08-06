@@ -27,7 +27,7 @@ const LoginForm = ({ onLogin }) => {
 
   return (
     <form onSubmit={handleLogin} aria-labelledby="login-form-heading">
-      <h3 id="login-form-heading">Login</h3>
+      <h2 id="login-form-heading" tabIndex="0">Login</h2>
 
       <div>
         <label htmlFor="username">Username</label>
@@ -55,10 +55,10 @@ const LoginForm = ({ onLogin }) => {
         />
       </div>
 
-      <button type="submit" aria-label="Submit login form">Login</button>
+      <button type="submit">Login</button>
 
       {error && (
-        <p role="alert" aria-live="polite" style={{ color: 'red' }}>
+        <p role="alert" aria-live="polite" tabIndex="0" style={{ color: 'red' }}>
           {error}
         </p>
       )}

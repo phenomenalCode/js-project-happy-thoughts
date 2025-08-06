@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
-import NewThoughtBoard from "./new_thought_bord.jsx";
-import OlderThoughts from "./older_thoughts.jsx";
-import LikedThoughts from "./liked-thoughts.jsx";
-import RandomThoughts from "./random-thoughts.jsx";
-import RegisterForm from "./registration.jsx";
-import LoginForm from "./login.jsx";
+import React, { useState, useEffect, Suspense } from "react";
+
+// Lazy load components
+const NewThoughtBoard = React.lazy(() => import("./new_thought_bord.jsx"));
+const OlderThoughts = React.lazy(() => import("./older_thoughts.jsx"));
+const LikedThoughts = React.lazy(() => import("./liked-thoughts.jsx"));
+const RandomThoughts = React.lazy(() => import("./random-thoughts.jsx"));
+const RegisterForm = React.lazy(() => import("./registration.jsx"));
+const LoginForm = React.lazy(() => import("./login.jsx"));
 
 const getCurrentUserIdFromToken = (token) => {
   if (!token) return null;
@@ -66,15 +68,22 @@ export const App = () => {
     setLikedSet(new Set());
   };
 
+  // ------------- AUTH STATE UI ------------- //
   if (!token) {
     return (
-      <main className="auth-container" aria-label="Authentication area">
-        <h1>Happy Thoughts</h1>
-        <h2>Please log in to share and see thoughts</h2>
-        <LoginForm onLogin={handleLogin} aria-label="Login form" />
+      <main className="auth-container" aria-label="Authentication">
+        <h1 tabIndex={0}>Happy Thoughts</h1>
+        <p tabIndex={0}>Please log in to share and see thoughts</p>
+
+        <Suspense fallback={<div>Loading login...</div>}>
+          <LoginForm onLogin={handleLogin} />
+        </Suspense>
+
         <button
           onClick={() => setShowRegisterModal(true)}
-          aria-label="Open registration form"
+          aria-haspopup="dialog"
+          aria-controls="registration-dialog"
+          aria-expanded={showRegisterModal}
         >
           Register
         </button>
@@ -82,10 +91,11 @@ export const App = () => {
         {showRegisterModal && (
           <div
             className="modal-overlay"
-            onClick={() => setShowRegisterModal(false)}
-            aria-modal="true"
             role="dialog"
-            aria-label="Registration modal"
+            aria-modal="true"
+            aria-labelledby="register-heading"
+            id="registration-dialog"
+            onClick={() => setShowRegisterModal(false)}
           >
             <div
               className="modal-content"
@@ -95,12 +105,14 @@ export const App = () => {
               <button
                 className="close-button"
                 onClick={() => setShowRegisterModal(false)}
-                aria-label="Close registration form"
+                aria-label="Close registration"
               >
-                &times;
+                ×
               </button>
-              <h3>Register</h3>
-              <RegisterForm aria-label="Register form" />
+              <h3 id="register-heading">Register</h3>
+              <Suspense fallback={<div>Loading registration form...</div>}>
+                <RegisterForm />
+              </Suspense>
             </div>
           </div>
         )}
@@ -108,38 +120,59 @@ export const App = () => {
     );
   }
 
+  // ------------- MAIN APP UI ------------- //
   return (
     <>
-      <header aria-label="Site header">
-        <h1>Happy Thoughts</h1>
-        <h2>Share your happy thoughts with us!</h2>
-        <button onClick={handleLogout} aria-label="Logout from application">
+      <header aria-label="Page header">
+        <h1 tabIndex={0}>Happy Thoughts</h1>
+        <p tabIndex={0}>Share your happy thoughts with us!</p>
+        <button onClick={handleLogout} aria-label="Log out">
           Logout
         </button>
       </header>
 
-      <main className="container" aria-label="Main content area">
-        <section aria-label="New Thought Board">
-          <NewThoughtBoard
-            prependThought={(newThought) => setThoughts((prev) => [newThought, ...prev])}
-          />
+      <main className="container" aria-label="Main content">
+        <section aria-labelledby="new-thoughts-heading">
+          <h2 id="new-thoughts-heading" className="visually-hidden">
+            New Thoughts
+          </h2>
+          <Suspense fallback={<div>Loading new thoughts...</div>}>
+            <NewThoughtBoard
+              prependThought={(newThought) => setThoughts((prev) => [newThought, ...prev])}
+            />
+          </Suspense>
         </section>
 
-        <section aria-label="Older Thoughts">
-          <OlderThoughts
-            thoughts={thoughts}
-            setThoughts={setThoughts}
-            likedSet={likedSet}
-            setLikedSet={setLikedSet}
-          />
+        <section aria-labelledby="older-thoughts-heading">
+          <h2 id="older-thoughts-heading" className="visually-hidden">
+            Older Thoughts
+          </h2>
+          <Suspense fallback={<div>Loading older thoughts...</div>}>
+            <OlderThoughts
+              thoughts={thoughts}
+              setThoughts={setThoughts}
+              likedSet={likedSet}
+              setLikedSet={setLikedSet}
+            />
+          </Suspense>
         </section>
 
-        <section aria-label="Liked Thoughts">
-          <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
+        <section aria-labelledby="liked-thoughts-heading">
+          <h2 id="liked-thoughts-heading" className="visually-hidden">
+            Liked Thoughts
+          </h2>
+          <Suspense fallback={<div>Loading liked thoughts...</div>}>
+            <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
+          </Suspense>
         </section>
 
-        <section aria-label="Random Thoughts">
-          <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
+        <section aria-labelledby="random-thoughts-heading">
+          <h2 id="random-thoughts-heading" className="visually-hidden">
+            Random Thoughts
+          </h2>
+          <Suspense fallback={<div>Loading random thoughts...</div>}>
+            <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
+          </Suspense>
         </section>
       </main>
     </>
