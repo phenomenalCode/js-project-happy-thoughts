@@ -1,4 +1,3 @@
-import React from "react";
 
 const LikedThoughts = ({ likedSet, allThoughts }) => {
   const likedThoughts = allThoughts.filter((t) => likedSet.has(t._id));

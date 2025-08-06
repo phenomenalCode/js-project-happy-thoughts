@@ -43,7 +43,12 @@ export const App = () => {
 
   useEffect(() => {
     if (token) {
+      // Fetch thoughts
       fetchThoughts();
+
+      // Preload lazy components in the background
+      import("./liked-thoughts.jsx");
+      import("./random-thoughts.jsx");
     }
   }, [token]);
 
@@ -187,7 +192,7 @@ export const App = () => {
           <h2 id="liked-thoughts-heading" className="visually-hidden">
             Liked Thoughts
           </h2>
-          <Suspense fallback={<p>Loading liked thoughts…</p>}>
+          <Suspense fallback={<div className="skeleton" style={{ height: "200px" }} />}>
             <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
           </Suspense>
         </section>
@@ -196,7 +201,7 @@ export const App = () => {
           <h2 id="random-thoughts-heading" className="visually-hidden">
             Random Thoughts
           </h2>
-          <Suspense fallback={<p>Loading random thoughts…</p>}>
+          <Suspense fallback={<div className="skeleton" style={{ height: "200px" }} />}>
             <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
           </Suspense>
         </section>
