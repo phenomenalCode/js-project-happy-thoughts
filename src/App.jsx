@@ -50,6 +50,14 @@ export const App = () => {
     }
   };
 
+  // Fetch thoughts on initial load
+  useEffect(() => {
+    if (token) {
+      fetchThoughts();
+    }
+  }, [token]);
+
+
   // Load likedSet from localStorage after fetching thoughts, syncing IDs
   const loadLikedSet = (fetchedThoughts, userId) => {
     const storedLikes = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
