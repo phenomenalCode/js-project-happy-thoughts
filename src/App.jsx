@@ -9,11 +9,10 @@ import React, {
 import LoginForm from "./login.jsx";
 import RegisterForm from "./registration.jsx";
 
-// Lazy load all non-critical UI
-const NewThoughtBoard  = lazy(() => import("./new_thought_bord.jsx"));
-const OlderThoughts    = lazy(() => import("./older_thoughts.jsx"));
-const LikedThoughts    = lazy(() => import("./liked-thoughts.jsx"));
-const RandomThoughts   = lazy(() => import("./random-thoughts.jsx"));
+const NewThoughtBoard = lazy(() => import("./new_thought_bord.jsx"));
+const OlderThoughts = lazy(() => import("./older_thoughts.jsx"));
+const LikedThoughts = lazy(() => import("./liked-thoughts.jsx"));
+const RandomThoughts = lazy(() => import("./random-thoughts.jsx"));
 
 const getCurrentUserIdFromToken = (token) => {
   if (!token) return null;
@@ -30,48 +29,44 @@ const getCurrentUserIdFromToken = (token) => {
 export const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [thoughts, setThoughts] = useState([]);
-  const [likedSet, setLikedSet] = useState(() => {
-    const t = localStorage.getItem("token");
-    const userId = getCurrentUserIdFromToken(t);
-    const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
-    return new Set(stored);
-  });
+  const [likedSet, setLikedSet] = useState(new Set());
+  const [loadingThoughts, setLoadingThoughts] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
-  // startTransition for low-priority updates
   const [isPending, startUpdate] = useTransition();
 
-  // Make fetchThoughts async and return sorted thoughts
   const fetchThoughts = async () => {
+    setLoadingThoughts(true);
     try {
       const res = await fetch("https://js-project-happy-thoughts.onrender.com/thoughts");
       const data = await res.json();
       const sorted = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       startUpdate(() => setThoughts(sorted));
+      setLoadingThoughts(false);
       return sorted;
     } catch (e) {
       console.error("Error fetching thoughts:", e);
+      setLoadingThoughts(false);
       return [];
     }
   };
 
-  // Updated handleLogin to fetch thoughts then filter likedSet accordingly
+  // Load likedSet from localStorage after fetching thoughts, syncing IDs
+  const loadLikedSet = (fetchedThoughts, userId) => {
+    const storedLikes = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
+    const validIds = new Set(fetchedThoughts.map(t => t._id || t.id));
+    const filteredLikes = storedLikes.filter(id => validIds.has(id));
+    setLikedSet(new Set(filteredLikes));
+  };
+
+  // On login: save token, fetch thoughts, then set likedSet
   const handleLogin = async (newToken) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
 
-    const fetchedThoughts = await fetchThoughts();
-
     const userId = getCurrentUserIdFromToken(newToken);
-    const storedLikes = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
-
-    // Extract valid IDs (adjust '_id' if your backend uses another key)
-    const validIds = new Set(fetchedThoughts.map(t => t._id || t.id));
-
-    // Filter liked IDs to only those that exist in fetched thoughts
-    const filteredLikes = storedLikes.filter(id => validIds.has(id));
-
-    setLikedSet(new Set(filteredLikes));
+    const fetchedThoughts = await fetchThoughts();
+    loadLikedSet(fetchedThoughts, userId);
   };
 
   const handleLogout = () => {
@@ -82,11 +77,18 @@ export const App = () => {
     localStorage.removeItem("token");
     setToken(null);
     setLikedSet(new Set());
+    setThoughts([]);
   };
 
+  // On mount or token change, fetch thoughts and likedSet if token exists
   useEffect(() => {
     if (token) {
-      fetchThoughts();
+      (async () => {
+        const userId = getCurrentUserIdFromToken(token);
+        const fetchedThoughts = await fetchThoughts();
+        loadLikedSet(fetchedThoughts, userId);
+      })();
+
       window.requestIdleCallback?.(() => {
         import("./new_thought_bord.jsx");
         import("./older_thoughts.jsx");
@@ -178,6 +180,19 @@ export const App = () => {
     );
   }
 
+  // Show loading indicator until thoughts are loaded
+  if (loadingThoughts) {
+    return (
+      <main
+        className="container"
+        aria-label="Main content"
+        style={{ minHeight: "600px", padding: "2rem", textAlign: "center" }}
+      >
+        <p>Loading thoughts…</p>
+      </main>
+    );
+  }
+
   return (
     <>
       <header aria-label="Page header">
@@ -188,14 +203,8 @@ export const App = () => {
         </button>
       </header>
 
-      {isPending && (
-        <div role="status" aria-live="polite" className="loading-indicator">
-          Loading thoughts…
-        </div>
-      )}
-
-      <main className="container" aria-label="Main content">
-        <Suspense fallback={<div style={{ minHeight: 200 }}>Loading NewThoughtBoard…</div>}>
+      <main className="container" aria-label="Main content" style={{ minHeight: "600px" }}>
+        <Suspense fallback={<div style={{ minHeight: 300 }}>Loading NewThoughtBoard…</div>}>
           <NewThoughtBoard prependThought={(nt) => setThoughts((p) => [nt, ...p])} />
         </Suspense>
 
