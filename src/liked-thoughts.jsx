@@ -4,19 +4,28 @@ const LikedThoughts = ({ likedSet, allThoughts }) => {
   const likedThoughts = allThoughts.filter((t) => likedSet.has(t._id));
 
   return (
-    <div className="liked-thoughts">
-      <h2>Liked Thoughts</h2>
+    <section
+      className="liked-thoughts"
+      aria-labelledby="liked-thoughts-heading"
+      role="region"
+    >
+      <h2 id="liked-thoughts-heading">Liked Thoughts</h2>
+
       {likedThoughts.length > 0 ? (
-        likedThoughts.map((thought) => (
-          <div key={thought._id}>
-            <p>❤️ {thought.hearts}</p>
-            <p>{thought.message}</p>
-          </div>
-        ))
+        <ul aria-label="List of liked thoughts">
+          {likedThoughts.map((thought) => (
+            <li key={thought._id}>
+              <p aria-label={`Liked ${thought.hearts} times`}>
+                ❤️ {thought.hearts}
+              </p>
+              <p>{thought.message}</p>
+            </li>
+          ))}
+        </ul>
       ) : (
         <p>No liked thoughts yet!</p>
       )}
-    </div>
+    </section>
   );
 };
 

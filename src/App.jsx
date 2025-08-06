@@ -5,6 +5,7 @@ import LikedThoughts from "./liked-thoughts.jsx";
 import RandomThoughts from "./random-thoughts.jsx";
 import RegisterForm from "./registration.jsx";
 import LoginForm from "./login.jsx";
+
 const getCurrentUserIdFromToken = (token) => {
   if (!token) return null;
   try {
@@ -20,17 +21,15 @@ const getCurrentUserIdFromToken = (token) => {
 export const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [thoughts, setThoughts] = useState([]);
- const [likedSet, setLikedSet] = useState(() => {
-  const token = localStorage.getItem("token");
-  const userId = getCurrentUserIdFromToken(token);
-  const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
-  return new Set(stored);
-});
+  const [likedSet, setLikedSet] = useState(() => {
+    const token = localStorage.getItem("token");
+    const userId = getCurrentUserIdFromToken(token);
+    const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
+    return new Set(stored);
+  });
 
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
-
-  // Fetch thoughts from API
   const fetchThoughts = () => {
     fetch("https://js-project-happy-thoughts.onrender.com/thoughts")
       .then((res) => res.json())
@@ -47,72 +46,102 @@ export const App = () => {
     }
   }, [token]);
 
- const handleLogin = (newToken) => {
-  localStorage.setItem("token", newToken);
-  setToken(newToken);
+  const handleLogin = (newToken) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
 
-  // Load user-specific liked thoughts
-  const userId = getCurrentUserIdFromToken(newToken);
-  const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
-  setLikedSet(new Set(stored));
-};
+    const userId = getCurrentUserIdFromToken(newToken);
+    const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
+    setLikedSet(new Set(stored));
+  };
 
-const handleLogout = () => {
-  const userId = getCurrentUserIdFromToken(token);
-  if (userId) {
-    localStorage.setItem(`likedThoughts_${userId}`, JSON.stringify([...likedSet]));
-  }
+  const handleLogout = () => {
+    const userId = getCurrentUserIdFromToken(token);
+    if (userId) {
+      localStorage.setItem(`likedThoughts_${userId}`, JSON.stringify([...likedSet]));
+    }
 
-  localStorage.removeItem("token");
-  setToken(null);
-  setLikedSet(new Set());
-};
+    localStorage.removeItem("token");
+    setToken(null);
+    setLikedSet(new Set());
+  };
+
   if (!token) {
     return (
-      <div className="auth-container">
+      <main className="auth-container" aria-label="Authentication area">
         <h1>Happy Thoughts</h1>
         <h2>Please log in to share and see thoughts</h2>
-        <LoginForm onLogin={handleLogin} />
-        <button onClick={() => setShowRegisterModal(true)}>Register</button>
+        <LoginForm onLogin={handleLogin} aria-label="Login form" />
+        <button
+          onClick={() => setShowRegisterModal(true)}
+          aria-label="Open registration form"
+        >
+          Register
+        </button>
 
         {showRegisterModal && (
-          <div className="modal-overlay" onClick={() => setShowRegisterModal(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <button className="close-button" onClick={() => setShowRegisterModal(false)}>
+          <div
+            className="modal-overlay"
+            onClick={() => setShowRegisterModal(false)}
+            aria-modal="true"
+            role="dialog"
+            aria-label="Registration modal"
+          >
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              role="document"
+            >
+              <button
+                className="close-button"
+                onClick={() => setShowRegisterModal(false)}
+                aria-label="Close registration form"
+              >
                 &times;
               </button>
               <h3>Register</h3>
-              <RegisterForm />
+              <RegisterForm aria-label="Register form" />
             </div>
           </div>
         )}
-      </div>
+      </main>
     );
   }
 
   return (
     <>
-      <header>
+      <header aria-label="Site header">
         <h1>Happy Thoughts</h1>
         <h2>Share your happy thoughts with us!</h2>
-        <button onClick={handleLogout}>Logout</button>
+        <button onClick={handleLogout} aria-label="Logout from application">
+          Logout
+        </button>
       </header>
 
-      <div className="container">
-        <NewThoughtBoard
-          prependThought={(newThought) => setThoughts((prev) => [newThought, ...prev])}
-        />
-        <OlderThoughts
-  thoughts={thoughts}
-  setThoughts={setThoughts}
-  likedSet={likedSet}
-  setLikedSet={setLikedSet}
-/>
+      <main className="container" aria-label="Main content area">
+        <section aria-label="New Thought Board">
+          <NewThoughtBoard
+            prependThought={(newThought) => setThoughts((prev) => [newThought, ...prev])}
+          />
+        </section>
 
-        <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
-       <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
+        <section aria-label="Older Thoughts">
+          <OlderThoughts
+            thoughts={thoughts}
+            setThoughts={setThoughts}
+            likedSet={likedSet}
+            setLikedSet={setLikedSet}
+          />
+        </section>
 
-      </div>
+        <section aria-label="Liked Thoughts">
+          <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
+        </section>
+
+        <section aria-label="Random Thoughts">
+          <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
+        </section>
+      </main>
     </>
   );
 };

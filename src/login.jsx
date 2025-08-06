@@ -18,7 +18,7 @@ const LoginForm = ({ onLogin }) => {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
-      localStorage.setItem('token', data.token); // Save token for later use
+      localStorage.setItem('token', data.token);
       onLogin(data.token);
     } catch (err) {
       setError(err.message);
@@ -26,11 +26,42 @@ const LoginForm = ({ onLogin }) => {
   };
 
   return (
-    <form onSubmit={handleLogin}>
-      <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" required />
-      <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" required />
-      <button type="submit">Login</button>
-      {error && <p>{error}</p>}
+    <form onSubmit={handleLogin} aria-labelledby="login-form-heading">
+      <h3 id="login-form-heading">Login</h3>
+
+      <div>
+        <label htmlFor="username">Username</label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          autoComplete="username"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+        />
+      </div>
+
+      <button type="submit" aria-label="Submit login form">Login</button>
+
+      {error && (
+        <p role="alert" aria-live="polite" style={{ color: 'red' }}>
+          {error}
+        </p>
+      )}
     </form>
   );
 };

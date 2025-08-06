@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import { Button, Box, Typography } from "@mui/material";
 
 const RandomThoughts = ({ likedSet, setLikedSet }) => {
@@ -62,8 +62,10 @@ const RandomThoughts = ({ likedSet, setLikedSet }) => {
         padding: 2,
         backgroundColor: "#f9f9f9",
       }}
+      role="region"
+      aria-labelledby="random-thoughts-heading"
     >
-      <Typography variant="h4" textAlign="center" gutterBottom>
+      <Typography variant="h4" textAlign="center" gutterBottom id="random-thoughts-heading">
         Random Thoughts
       </Typography>
 
@@ -72,9 +74,17 @@ const RandomThoughts = ({ likedSet, setLikedSet }) => {
           if (!thought || !thought._id) return null;
 
           return (
-            <Box key={thought._id} p={2} mb={2} border="1px solid #ddd" borderRadius="8px">
-              <Typography>❤️ {thought.hearts ?? 0}</Typography>
-              <Typography>{thought.message}</Typography>
+            <Box
+              key={thought._id}
+              p={2}
+              mb={2}
+              border="1px solid #ddd"
+              borderRadius="8px"
+              role="article"
+              aria-label={`Thought message with ${thought.hearts ?? 0} hearts`}
+            >
+              <Typography aria-label="Number of hearts">❤️ {thought.hearts ?? 0}</Typography>
+              <Typography aria-label="Thought message">{thought.message}</Typography>
               <Button
                 variant="contained"
                 onClick={() => handleLike(thought._id)}
@@ -84,6 +94,11 @@ const RandomThoughts = ({ likedSet, setLikedSet }) => {
                   backgroundColor: "pink",
                   "&:hover": { backgroundColor: "#fc7685" },
                 }}
+                aria-label={
+                  likedSet.has(thought._id)
+                    ? 'Already liked'
+                    : `Like thought: ${thought.message}`
+                }
               >
                 {likedSet.has(thought._id) ? "Liked" : "💖 Like"}
               </Button>
@@ -112,6 +127,7 @@ const RandomThoughts = ({ likedSet, setLikedSet }) => {
               color: "#a3001b",
             },
           }}
+          aria-label="Refresh random thoughts"
         >
           Refresh Thoughts
         </Button>

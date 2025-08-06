@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'; 
 import {
   Box,
   Typography,
@@ -22,28 +22,20 @@ const getCurrentUserIdFromToken = () => {
 };
 
 const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
-  const [loading, setLoading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editText, setEditText] = useState('');
   const [editId, setEditId] = useState(null);
-
   const currentUserId = getCurrentUserIdFromToken();
 
   const handleLike = (thoughtId) => {
     if (!thoughtId || likedSet.has(thoughtId)) return;
 
     const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No token found. Please log in.');
-      return;
-    }
+    if (!token) return;
 
-    // Optimistic UI update
-    setThoughts((prevThoughts) =>
-      prevThoughts.map((thought) =>
-        thought._id === thoughtId
-          ? { ...thought, hearts: (thought.hearts || 0) + 1 }
-          : thought
+    setThoughts((prev) =>
+      prev.map((t) =>
+        t._id === thoughtId ? { ...t, hearts: (t.hearts || 0) + 1 } : t
       )
     );
 
@@ -53,21 +45,19 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
     })
       .then((res) => res.json())
       .then((updatedThought) => {
-        setThoughts((prevThoughts) =>
-          prevThoughts.map((thought) =>
-            thought._id === thoughtId
-              ? { ...thought, ...updatedThought, user: thought.user || updatedThought.user }
-              : thought
+        setThoughts((prev) =>
+          prev.map((t) =>
+            t._id === thoughtId
+              ? { ...t, ...updatedThought, user: t.user || updatedThought.user }
+              : t
           )
         );
-
-        // Update localStorage and likedSet
         const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
         const updatedLiked = [...new Set([...currentLiked, updatedThought._id])];
         localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
         setLikedSet(new Set(updatedLiked));
       })
-      .catch((err) => console.error('Like error:', err));
+      .catch(console.error);
   };
 
   const handleEditSave = () => {
@@ -96,10 +86,7 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
 
   const handleDelete = (thoughtId) => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No token found. Please log in.');
-      return;
-    }
+    if (!token) return;
 
     fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}`, {
       method: 'DELETE',
@@ -121,28 +108,27 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
         padding: 2,
         backgroundColor: '#eaeaeae6',
       }}
+      role="region"
+      aria-labelledby="recent-thoughts-heading"
     >
-      <Typography variant="h4" textAlign="center" gutterBottom>
+      <Typography
+        variant="h4"
+        textAlign="center"
+        gutterBottom
+        id="recent-thoughts-heading"
+      >
         Recent Server Thoughts
       </Typography>
 
-      {loading ? (
-        <Typography textAlign="center">Loading thoughts...</Typography>
+      {thoughts.length === 0 ? (
+        <Typography textAlign="center">No thoughts yet.</Typography>
       ) : (
         thoughts
           .filter(Boolean)
           .map((thought) => {
-            // Extract ownerId correctly whether thought.user is string or object
-            const ownerId = thought.user
-              ? typeof thought.user === 'string'
-                ? thought.user
-                : thought.user._id
-              : null;
-
+            const ownerId =
+              typeof thought.user === 'string' ? thought.user : thought.user?._id;
             const isOwner = ownerId === currentUserId;
-
-            // Debug logs (remove in production)
-            // console.log('Thought user:', thought.user, 'OwnerId:', ownerId, 'CurrentUserId:', currentUserId, 'isOwner:', isOwner);
 
             return (
               <Box
@@ -151,9 +137,11 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
                 mb={2}
                 border="1px solid #ddd"
                 borderRadius="8px"
+                role="article"
+                aria-label={`Thought message with ${thought.hearts || 0} hearts`}
               >
-                <Typography>❤️ {thought.hearts}</Typography>
-                <Typography>{thought.message}</Typography>
+                <Typography aria-label="Number of hearts">❤️ {thought.hearts}</Typography>
+                <Typography aria-label="Thought message">{thought.message}</Typography>
 
                 <Button
                   variant="contained"
@@ -164,6 +152,11 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
                     backgroundColor: 'pink',
                     '&:hover': { backgroundColor: '#fc7685' },
                   }}
+                  aria-label={
+                    likedSet.has(thought._id)
+                      ? 'Already liked'
+                      : `Like thought: ${thought.message}`
+                  }
                 >
                   {likedSet.has(thought._id) ? 'Liked' : '💖 Like'}
                 </Button>
@@ -187,6 +180,9 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
                         color: '#e1e5ea',
                       },
                     }}
+                    aria-label={
+                      isOwner ? `Edit thought: ${thought.message}` : 'Edit disabled'
+                    }
                   >
                     Edit
                   </Button>
@@ -203,6 +199,9 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
                         color: '#fbe9eb',
                       },
                     }}
+                    aria-label={
+                      isOwner ? `Delete thought: ${thought.message}` : 'Delete disabled'
+                    }
                   >
                     Delete
                   </Button>
@@ -212,8 +211,12 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
           })
       )}
 
-      <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
-        <DialogTitle>Edit Thought</DialogTitle>
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        aria-labelledby="edit-thought-dialog-title"
+      >
+        <DialogTitle id="edit-thought-dialog-title">Edit Thought</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
@@ -222,11 +225,14 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
             value={editText}
             onChange={(e) => setEditText(e.target.value)}
             autoFocus
+            aria-label="Edit thought message"
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button onClick={handleEditSave} variant="contained">
+          <Button onClick={() => setEditOpen(false)} aria-label="Cancel edit">
+            Cancel
+          </Button>
+          <Button onClick={handleEditSave} variant="contained" aria-label="Save edited thought">
             Save
           </Button>
         </DialogActions>
