@@ -4,7 +4,7 @@ import OlderThoughts from "./older_thoughts.jsx";
 import RegisterForm from "./registration.jsx";
 import LoginForm from "./login.jsx";
 
-// Lazy loaded components
+// Lazy load non-critical components
 const LikedThoughts = lazy(() => import("./liked-thoughts.jsx"));
 const RandomThoughts = lazy(() => import("./random-thoughts.jsx"));
 
@@ -43,10 +43,8 @@ export const App = () => {
 
   useEffect(() => {
     if (token) {
-      // Fetch thoughts
       fetchThoughts();
-
-      // Preload lazy components in the background
+      // Preload background components to reduce delay once shown
       import("./liked-thoughts.jsx");
       import("./random-thoughts.jsx");
     }
@@ -72,16 +70,10 @@ export const App = () => {
 
   if (!token) {
     return (
-      <main
-        className="auth-container"
-        aria-label="Authentication section"
-        style={{ minHeight: "600px" }}
-      >
+      <main className="auth-container" aria-label="Authentication section" style={{ minHeight: "600px" }}>
         <h1 tabIndex={0}>Happy Thoughts</h1>
         <h2 tabIndex={0}>Please log in to share and see thoughts</h2>
-
         <LoginForm onLogin={handleLogin} />
-
         <button
           onClick={() => setShowRegisterModal(true)}
           aria-haspopup="dialog"
@@ -171,9 +163,7 @@ export const App = () => {
           <h2 id="new-thoughts-heading" className="visually-hidden">
             New Thoughts
           </h2>
-          <NewThoughtBoard
-            prependThought={(newThought) => setThoughts((prev) => [newThought, ...prev])}
-          />
+          <NewThoughtBoard prependThought={(newThought) => setThoughts((prev) => [newThought, ...prev])} />
         </section>
 
         <section aria-labelledby="older-thoughts-heading" style={{ minHeight: "600px" }}>
