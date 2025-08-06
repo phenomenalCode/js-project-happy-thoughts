@@ -34,6 +34,7 @@ export const App = () => {
     const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
     return new Set(stored);
   });
+  console.log("Liked thoughts set:", likedSet);
   const [loadingThoughts, setLoading] = useState(false);
   const [showRegisterModal, setShowModal] = useState(false);
 

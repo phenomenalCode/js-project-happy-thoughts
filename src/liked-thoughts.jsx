@@ -1,6 +1,8 @@
+import React from "react";
 
 const LikedThoughts = ({ likedSet, allThoughts }) => {
   const likedThoughts = allThoughts.filter((t) => likedSet.has(t._id));
+console.log("✅ LikedThoughts component loaded");
 
   return (
     <section
