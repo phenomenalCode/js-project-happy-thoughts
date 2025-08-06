@@ -41,26 +41,37 @@ export const App = () => {
   // startTransition for low-priority updates
   const [isPending, startUpdate] = useTransition();
 
-  const fetchThoughts = () => {
-    fetch("https://js-project-happy-thoughts.onrender.com/thoughts")
-      .then((res) => res.json())
-      .then((data) => {
-        startUpdate(() => {
-          const sorted = data.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          );
-          setThoughts(sorted);
-        });
-      })
-      .catch(console.error);
+  // Make fetchThoughts async and return sorted thoughts
+  const fetchThoughts = async () => {
+    try {
+      const res = await fetch("https://js-project-happy-thoughts.onrender.com/thoughts");
+      const data = await res.json();
+      const sorted = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      startUpdate(() => setThoughts(sorted));
+      return sorted;
+    } catch (e) {
+      console.error("Error fetching thoughts:", e);
+      return [];
+    }
   };
 
-  const handleLogin = (newToken) => {
+  // Updated handleLogin to fetch thoughts then filter likedSet accordingly
+  const handleLogin = async (newToken) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
+
+    const fetchedThoughts = await fetchThoughts();
+
     const userId = getCurrentUserIdFromToken(newToken);
-    const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
-    setLikedSet(new Set(stored));
+    const storedLikes = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
+
+    // Extract valid IDs (adjust '_id' if your backend uses another key)
+    const validIds = new Set(fetchedThoughts.map(t => t._id || t.id));
+
+    // Filter liked IDs to only those that exist in fetched thoughts
+    const filteredLikes = storedLikes.filter(id => validIds.has(id));
+
+    setLikedSet(new Set(filteredLikes));
   };
 
   const handleLogout = () => {
@@ -76,7 +87,6 @@ export const App = () => {
   useEffect(() => {
     if (token) {
       fetchThoughts();
-      // preload lazy chunks during idle time
       window.requestIdleCallback?.(() => {
         import("./new_thought_bord.jsx");
         import("./older_thoughts.jsx");
