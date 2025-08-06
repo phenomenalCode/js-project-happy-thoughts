@@ -96,105 +96,144 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
         setThoughts((prev) => prev.filter((t) => t._id !== thoughtId));
       })
       .catch(console.error);
-  };
-return (
-  <Box
-    key={thought._id}
-    p={2}
-    mb={2}
-    border="1px solid #ddd"
-    borderRadius="8px"
-    role="article"
-    aria-label={`Thought message with ${thought.hearts || 0} hearts`}
-    sx={{ minHeight: 120 }} // Reserve minimum height to reduce shifts
-  >
-    {/* Hearts with fixed inline-block width */}
-    <Typography
-      aria-label="Number of hearts"
-      sx={{ minWidth: 60, display: 'inline-block' }}
-    >
-      ❤️ {thought.hearts}
-    </Typography>
+  }; return (
+    <Box aria-labelledby="older-thoughts-heading">
+      {thoughts.map((thought) => (
+        <Box
+          key={thought._id}
+          p={2}
+          mb={2}
+          border="1px solid #ddd"
+          borderRadius="8px"
+          role="article"
+          aria-label={`Thought message with ${thought.hearts || 0} hearts`}
+          sx={{ minHeight: 120 }}
+        >
+          <Typography
+            aria-label="Number of hearts"
+            sx={{ minWidth: 60, display: "inline-block" }}
+          >
+            ❤️ {thought.hearts}
+          </Typography>
 
-    {/* Message below hearts with margin and reserved height */}
-    <Typography
-      aria-label="Thought message"
-      sx={{ marginTop: 1, minHeight: 48 }}
-    >
-      {thought.message}
-    </Typography>
+          <Typography
+            aria-label="Thought message"
+            sx={{ marginTop: 1, minHeight: 48 }}
+          >
+            {thought.message}
+          </Typography>
 
-    {/* Like button with fixed size */}
-    <Button
-      variant="contained"
-      disabled={likedSet.has(thought._id)}
-      onClick={() => handleLike(thought._id)}
-      sx={{
-        mt: 1,
-        backgroundColor: 'pink',
-        '&:hover': { backgroundColor: '#fc7685' },
-        minWidth: 90,
-        height: 36,
-      }}
-      aria-label={
-        likedSet.has(thought._id)
-          ? 'Already liked'
-          : `Like thought: ${thought.message}`
-      }
-    >
-      {likedSet.has(thought._id) ? 'Liked' : '💖 Like'}
-    </Button>
+          <Button
+            variant="contained"
+            disabled={likedSet.has(thought._id)}
+            onClick={() => handleLike(thought._id)}
+            sx={{
+              mt: 1,
+              backgroundColor: "pink",
+              "&:hover": { backgroundColor: "#fc7685" },
+              minWidth: 90,
+              height: 36,
+            }}
+            aria-label={
+              likedSet.has(thought._id)
+                ? "Already liked"
+                : `Like thought: ${thought.message}`
+            }
+          >
+            {likedSet.has(thought._id) ? "Liked" : "💖 Like"}
+          </Button>
 
-    {/* Edit/Delete buttons in a flex row with consistent sizes */}
-    <Box mt={1} display="flex" gap={1}>
-      <Button
-        variant="outlined"
-        disabled={!isOwner}
-        onClick={() => {
-          setEditId(thought._id);
-          setEditText(thought.message);
-          setEditOpen(true);
-        }}
-        sx={{
-          flex: 1,
-          backgroundColor: '#007BFF',
-          color: '#fff',
-          '&:hover': { backgroundColor: '#0056b3' },
-          '&:disabled': {
-            backgroundColor: '#a6c8ff',
-            color: '#e1e5ea',
-          },
-          minHeight: 36,
-        }}
-        aria-label={
-          isOwner ? `Edit thought: ${thought.message}` : 'Edit disabled'
-        }
+          <Box mt={1} display="flex" gap={1}>
+            <Button
+              variant="outlined"
+              disabled={!isOwner}
+              onClick={() => {
+                setEditId(thought._id);
+                setEditText(thought.message);
+                setEditOpen(true);
+              }}
+              sx={{
+                flex: 1,
+                backgroundColor: "#007BFF",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#0056b3" },
+                "&:disabled": {
+                  backgroundColor: "#a6c8ff",
+                  color: "#e1e5ea",
+                },
+                minHeight: 36,
+              }}
+              aria-label={
+                isOwner
+                  ? `Edit thought: ${thought.message}`
+                  : "Edit disabled"
+              }
+            >
+              Edit
+            </Button>
+
+            <Button
+              variant="outlined"
+              disabled={!isOwner}
+              onClick={() => handleDelete(thought._id)}
+              sx={{
+                flex: 1,
+                backgroundColor: "#dc3545",
+                color: "#fff",
+                "&:hover": { backgroundColor: "#a71d2a" },
+                "&:disabled": {
+                  backgroundColor: "#fc7685",
+                  color: "#fbe9eb",
+                },
+                minHeight: 36,
+              }}
+              aria-label={
+                isOwner
+                  ? `Delete thought: ${thought.message}`
+                  : "Delete disabled"
+              }
+            >
+              Delete
+            </Button>
+          </Box>
+        </Box>
+      ))}
+
+      <Dialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        aria-labelledby="edit-thought-dialog-title"
+        PaperProps={{ sx: { maxWidth: 600, minHeight: 220 } }}
       >
-        Edit
-      </Button>
-      <Button
-        variant="outlined"
-        disabled={!isOwner}
-        onClick={() => handleDelete(thought._id)}
-        sx={{
-          flex: 1,
-          backgroundColor: '#dc3545',
-          color: '#fff',
-          '&:hover': { backgroundColor: '#a71d2a' },
-          '&:disabled': {
-            backgroundColor: '#fc7685',
-            color: '#fbe9eb',
-          },
-          minHeight: 36,
-        }}
-        aria-label={
-          isOwner ? `Delete thought: ${thought.message}` : 'Delete disabled'
-        }
-      >
-        Delete
-      </Button>
+        <DialogTitle id="edit-thought-dialog-title">
+          Edit Thought
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            minRows={2}
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            autoFocus
+            aria-label="Edit thought message"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditOpen(false)} aria-label="Cancel edit">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleEditSave}
+            variant="contained"
+            aria-label="Save edited thought"
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
-  </Box>
-)}
+  );
+};
 
-export default OlderThoughts;  
+export default OlderThoughts;
