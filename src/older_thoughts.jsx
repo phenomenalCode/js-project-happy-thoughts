@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; 
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -13,6 +13,7 @@ import {
 const getCurrentUserIdFromToken = () => {
   const token = localStorage.getItem('token');
   if (!token) return null;
+
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     return payload.userId || payload.id || null;
@@ -22,16 +23,17 @@ const getCurrentUserIdFromToken = () => {
 };
 
 const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
+  const [loading, setLoading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editText, setEditText] = useState('');
   const [editId, setEditId] = useState(null);
+
   const currentUserId = getCurrentUserIdFromToken();
 
   const handleLike = (thoughtId) => {
     if (!thoughtId || likedSet.has(thoughtId)) return;
-
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) return console.error('No token found. Please log in.');
 
     setThoughts((prev) =>
       prev.map((t) =>
@@ -44,20 +46,21 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
-      .then((updatedThought) => {
+      .then((updated) => {
         setThoughts((prev) =>
           prev.map((t) =>
             t._id === thoughtId
-              ? { ...t, ...updatedThought, user: t.user || updatedThought.user }
+              ? { ...t, ...updated, user: t.user || updated.user }
               : t
           )
         );
+
         const currentLiked = JSON.parse(localStorage.getItem('likedThoughts')) || [];
-        const updatedLiked = [...new Set([...currentLiked, updatedThought._id])];
+        const updatedLiked = [...new Set([...currentLiked, updated._id])];
         localStorage.setItem('likedThoughts', JSON.stringify(updatedLiked));
         setLikedSet(new Set(updatedLiked));
       })
-      .catch(console.error);
+      .catch((err) => console.error('Like error:', err));
   };
 
   const handleEditSave = () => {
@@ -86,7 +89,7 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
 
   const handleDelete = (thoughtId) => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) return console.error('No token found. Please log in.');
 
     fetch(`https://js-project-happy-thoughts.onrender.com/thoughts/${thoughtId}`, {
       method: 'DELETE',
@@ -96,118 +99,125 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
         setThoughts((prev) => prev.filter((t) => t._id !== thoughtId));
       })
       .catch(console.error);
-  }; return (
-    <Box aria-labelledby="older-thoughts-heading">
-      {thoughts.map((thought) => (
-        <Box
-          key={thought._id}
-          p={2}
-          mb={2}
-          border="1px solid #ddd"
-          borderRadius="8px"
-          role="article"
-          aria-label={`Thought message with ${thought.hearts || 0} hearts`}
-          sx={{ minHeight: 120 }}
-        >
-          <Typography
-            aria-label="Number of hearts"
-            sx={{ minWidth: 60, display: "inline-block" }}
-          >
-            ❤️ {thought.hearts}
-          </Typography>
+  };
 
-          <Typography
-            aria-label="Thought message"
-            sx={{ marginTop: 1, minHeight: 48 }}
-          >
-            {thought.message}
-          </Typography>
+  return (
+    <Box
+      component="section"
+      aria-labelledby="recent-thoughts-heading"
+      role="region"
+      sx={{
+        borderRadius: '1rem',
+        boxShadow: '5px 8px rgba(0,0,0,0.1)',
+        maxWidth: 600,
+        margin: '2rem auto',
+        padding: 2,
+        backgroundColor: '#eaeaeae6',
+      }}
+    >
+      <Typography
+        variant="h4"
+        textAlign="center"
+        gutterBottom
+        id="recent-thoughts-heading"
+        component="h2"
+      >
+        Recent Server Thoughts
+      </Typography>
 
-          <Button
-            variant="contained"
-            disabled={likedSet.has(thought._id)}
-            onClick={() => handleLike(thought._id)}
-            sx={{
-              mt: 1,
-              backgroundColor: "pink",
-              "&:hover": { backgroundColor: "#fc7685" },
-              minWidth: 90,
-              height: 36,
-            }}
-            aria-label={
-              likedSet.has(thought._id)
-                ? "Already liked"
-                : `Like thought: ${thought.message}`
-            }
-          >
-            {likedSet.has(thought._id) ? "Liked" : "💖 Like"}
-          </Button>
+      {loading ? (
+        <Typography textAlign="center">Loading thoughts...</Typography>
+      ) : (
+        thoughts.filter(Boolean).map((thought) => {
+          const ownerId =
+            typeof thought.user === 'string' ? thought.user : thought.user?._id;
+          const isOwner = ownerId === currentUserId;
 
-          <Box mt={1} display="flex" gap={1}>
-            <Button
-              variant="outlined"
-              disabled={!isOwner}
-              onClick={() => {
-                setEditId(thought._id);
-                setEditText(thought.message);
-                setEditOpen(true);
-              }}
-              sx={{
-                flex: 1,
-                backgroundColor: "#007BFF",
-                color: "#fff",
-                "&:hover": { backgroundColor: "#0056b3" },
-                "&:disabled": {
-                  backgroundColor: "#a6c8ff",
-                  color: "#e1e5ea",
-                },
-                minHeight: 36,
-              }}
-              aria-label={
-                isOwner
-                  ? `Edit thought: ${thought.message}`
-                  : "Edit disabled"
-              }
+          return (
+            <Box
+              key={thought._id}
+              p={2}
+              mb={2}
+              border="1px solid #ddd"
+              borderRadius="8px"
+              minHeight="120px"
+              aria-label={`Thought by ${thought.user?.username || 'user'}`}
+              role="article"
             >
-              Edit
-            </Button>
+              <Typography variant="h6" component="h3" aria-label="Heart count">
+                ❤️ {thought.hearts}
+              </Typography>
+              <Typography>{thought.message}</Typography>
 
-            <Button
-              variant="outlined"
-              disabled={!isOwner}
-              onClick={() => handleDelete(thought._id)}
-              sx={{
-                flex: 1,
-                backgroundColor: "#dc3545",
-                color: "#fff",
-                "&:hover": { backgroundColor: "#a71d2a" },
-                "&:disabled": {
-                  backgroundColor: "#fc7685",
-                  color: "#fbe9eb",
-                },
-                minHeight: 36,
-              }}
-              aria-label={
-                isOwner
-                  ? `Delete thought: ${thought.message}`
-                  : "Delete disabled"
-              }
-            >
-              Delete
-            </Button>
-          </Box>
-        </Box>
-      ))}
+              <Button
+                variant="contained"
+                disabled={likedSet.has(thought._id)}
+                onClick={() => handleLike(thought._id)}
+                aria-label={
+                  likedSet.has(thought._id)
+                    ? 'You already liked this thought'
+                    : 'Like this thought'
+                }
+                sx={{
+                  mt: 1,
+                  backgroundColor: 'pink',
+                  '&:hover': { backgroundColor: '#fc7685' },
+                }}
+              >
+                {likedSet.has(thought._id) ? 'Liked' : '💖 Like'}
+              </Button>
+
+              <Box mt={1} display="flex" gap={1}>
+                <Button
+                  variant="outlined"
+                  disabled={!isOwner}
+                  onClick={() => {
+                    setEditId(thought._id);
+                    setEditText(thought.message);
+                    setEditOpen(true);
+                  }}
+                  aria-label="Edit your thought"
+                  sx={{
+                    backgroundColor: '#007BFF',
+                    color: '#fff',
+                    '&:hover': { backgroundColor: '#0056b3' },
+                    '&:disabled': {
+                      backgroundColor: '#a6c8ff',
+                      color: '#e1e5ea',
+                    },
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="outlined"
+                  disabled={!isOwner}
+                  onClick={() => handleDelete(thought._id)}
+                  aria-label="Delete your thought"
+                  sx={{
+                    backgroundColor: '#dc3545',
+                    color: '#fff',
+                    '&:hover': { backgroundColor: '#a71d2a' },
+                    '&:disabled': {
+                      backgroundColor: '#f5aeb4',
+                      color: '#fbe9eb',
+                    },
+                  }}
+                >
+                  Delete
+                </Button>
+              </Box>
+            </Box>
+          );
+        })
+      )}
 
       <Dialog
         open={editOpen}
         onClose={() => setEditOpen(false)}
         aria-labelledby="edit-thought-dialog-title"
-        PaperProps={{ sx: { maxWidth: 600, minHeight: 220 } }}
       >
-        <DialogTitle id="edit-thought-dialog-title">
-          Edit Thought
-        </DialogTitle>
+        <DialogTitle id="edit-thought-dialog-title">Edit Thought</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
@@ -223,11 +233,7 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
           <Button onClick={() => setEditOpen(false)} aria-label="Cancel edit">
             Cancel
           </Button>
-          <Button
-            onClick={handleEditSave}
-            variant="contained"
-            aria-label="Save edited thought"
-          >
+          <Button onClick={handleEditSave} variant="contained" aria-label="Save changes">
             Save
           </Button>
         </DialogActions>
