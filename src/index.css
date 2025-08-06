@@ -167,4 +167,20 @@ button:disabled {
   }
 }
 
+@font-face {
+  font-family: 'YourFontName';
+  src: url('/fonts/YourFont.woff2') format('woff2');
+  font-display: swap; /* This reduces CLS caused by delayed font loading */
+}
+
+.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* Avoid layout shifts when form messages appear */
+.form-message {
+  min-height: 2rem;
+}
 
