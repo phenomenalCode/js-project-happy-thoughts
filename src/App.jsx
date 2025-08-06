@@ -8,10 +8,9 @@ import React, {
 } from "react";
 import LoginForm from "./login.jsx";
 import RegisterForm from "./registration.jsx";
-
+import LikedThoughts from "./liked-thoughts.jsx";
 const NewThoughtBoard = lazy(() => import("./new_thought_bord.jsx"));
 const OlderThoughts = lazy(() => import("./older_thoughts.jsx"));
-const LikedThoughts = lazy(() => import("./liked-thoughts.jsx"));
 const RandomThoughts = lazy(() => import("./random-thoughts.jsx"));
 
 const getCurrentUserIdFromToken = (token) => {
