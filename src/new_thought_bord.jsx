@@ -135,14 +135,15 @@ const NewThoughtBoard = ({ prependThought }) => {
     </List>
 
     <form onSubmit={handleSubmit}>
-      <TextField
-        fullWidth
-        variant="outlined"
-        aria-label="Type your message"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        sx={{ marginBottom: 2 }}
-      />
+   <TextField
+  fullWidth
+  variant="outlined"
+  label="Type your message"
+  value={message}
+  onChange={(e) => setMessage(e.target.value)}
+  sx={{ marginBottom: 2 }}
+/>
+
 
       <Box display="flex" justifyContent="center" gap={2}>
         <Button
@@ -150,9 +151,13 @@ const NewThoughtBoard = ({ prependThought }) => {
           variant="contained"
           disabled={!user || message.trim() === ""}
           sx={{
-            backgroundColor: "#fc7685",
-            borderRadius: "99999px",
-            "&:hover": { backgroundColor: "#e05568" },
+          backgroundColor: "#c62839", // Darker red for better contrast
+color: "white",             // Ensure text remains visible
+borderRadius: "99999px",
+"&:hover": {
+  backgroundColor: "#a61d2e" // Darker on hover
+},
+
           }}
         >
           Send a happy thought ❤️
@@ -160,11 +165,13 @@ const NewThoughtBoard = ({ prependThought }) => {
         <Button
           type="button"
           onClick={handleQuestion}
-          sx={{
-            backgroundColor: "#fc7685",
-            color: "white",
-            borderRadius: "99999px",
-            "&:hover": { backgroundColor: "#e05568" },
+          sx={{backgroundColor: "#c62839", // Darker red for better contrast
+color: "white",             // Ensure text remains visible
+borderRadius: "99999px",
+"&:hover": {
+  backgroundColor: "#a61d2e" // Darker on hover
+},
+
           }}
         >
           Next Question

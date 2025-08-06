@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import NewThoughtBoard from "./new_thought_bord.jsx";
 import OlderThoughts from "./older_thoughts.jsx";
-import LikedThoughts from "./liked-thoughts.jsx";
-import RandomThoughts from "./random-thoughts.jsx";
 import RegisterForm from "./registration.jsx";
 import LoginForm from "./login.jsx";
+
+// Lazy loaded components
+const LikedThoughts = lazy(() => import("./liked-thoughts.jsx"));
+const RandomThoughts = lazy(() => import("./random-thoughts.jsx"));
 
 const getCurrentUserIdFromToken = (token) => {
   if (!token) return null;
@@ -29,7 +31,6 @@ export const App = () => {
   });
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
-  // Fetch thoughts from API
   const fetchThoughts = () => {
     fetch("https://js-project-happy-thoughts.onrender.com/thoughts")
       .then((res) => res.json())
@@ -69,7 +70,7 @@ export const App = () => {
       <main
         className="auth-container"
         aria-label="Authentication section"
-        style={{ minHeight: "600px" }} // reserve space to prevent CLS
+        style={{ minHeight: "600px" }}
       >
         <h1 tabIndex={0}>Happy Thoughts</h1>
         <h2 tabIndex={0}>Please log in to share and see thoughts</h2>
@@ -161,10 +162,7 @@ export const App = () => {
       </header>
 
       <main className="container" aria-label="Main content">
-        <section
-          aria-labelledby="new-thoughts-heading"
-          style={{ minHeight: "200px" }} // reserve space to avoid CLS
-        >
+        <section aria-labelledby="new-thoughts-heading" style={{ minHeight: "200px" }}>
           <h2 id="new-thoughts-heading" className="visually-hidden">
             New Thoughts
           </h2>
@@ -173,10 +171,7 @@ export const App = () => {
           />
         </section>
 
-        <section
-          aria-labelledby="older-thoughts-heading"
-          style={{ minHeight: "600px" }} // reserve space to avoid CLS
-        >
+        <section aria-labelledby="older-thoughts-heading" style={{ minHeight: "600px" }}>
           <h2 id="older-thoughts-heading" className="visually-hidden">
             Older Thoughts
           </h2>
@@ -188,24 +183,22 @@ export const App = () => {
           />
         </section>
 
-        <section
-          aria-labelledby="liked-thoughts-heading"
-          style={{ minHeight: "400px" }} // reserve space to avoid CLS
-        >
+        <section aria-labelledby="liked-thoughts-heading" style={{ minHeight: "400px" }}>
           <h2 id="liked-thoughts-heading" className="visually-hidden">
             Liked Thoughts
           </h2>
-          <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
+          <Suspense fallback={<p>Loading liked thoughts…</p>}>
+            <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
+          </Suspense>
         </section>
 
-        <section
-          aria-labelledby="random-thoughts-heading"
-          style={{ minHeight: "400px" }} // reserve space to avoid CLS
-        >
+        <section aria-labelledby="random-thoughts-heading" style={{ minHeight: "400px" }}>
           <h2 id="random-thoughts-heading" className="visually-hidden">
             Random Thoughts
           </h2>
-          <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
+          <Suspense fallback={<p>Loading random thoughts…</p>}>
+            <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
+          </Suspense>
         </section>
       </main>
     </>

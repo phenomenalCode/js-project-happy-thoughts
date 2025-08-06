@@ -65,7 +65,13 @@ const RandomThoughts = ({ likedSet, setLikedSet }) => {
       role="region"
       aria-labelledby="random-thoughts-heading"
     >
-      <Typography variant="h4" textAlign="center" gutterBottom id="random-thoughts-heading">
+      <Typography 
+        variant="h4" 
+        component="h3" 
+        textAlign="center" 
+        gutterBottom 
+        id="random-thoughts-heading"
+      >
         Random Thoughts
       </Typography>
 

@@ -160,8 +160,12 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
                 }
                 sx={{
                   mt: 1,
-                  backgroundColor: 'pink',
-                  '&:hover': { backgroundColor: '#fc7685' },
+                backgroundColor: "#c62839", // Darker red for better contrast
+borderRadius: "99999px",
+"&:hover": {
+  backgroundColor: "#a61d2e" // Darker on hover
+},
+
                 }}
               >
                 {likedSet.has(thought._id) ? 'Liked' : '💖 Like'}
@@ -195,9 +199,9 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
                   onClick={() => handleDelete(thought._id)}
                   aria-label="Delete your thought"
                   sx={{
-                    backgroundColor: '#dc3545',
+                    backgroundColor: '#78000c',
                     color: '#fff',
-                    '&:hover': { backgroundColor: '#a71d2a' },
+                    '&:hover': { backgroundColor: '#510008' },
                     '&:disabled': {
                       backgroundColor: '#f5aeb4',
                       color: '#fbe9eb',
