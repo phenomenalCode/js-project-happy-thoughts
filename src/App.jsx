@@ -1,12 +1,19 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
-import NewThoughtBoard from "./new_thought_bord.jsx";
-import OlderThoughts from "./older_thoughts.jsx";
-import RegisterForm from "./registration.jsx";
+import React, {
+  useState,
+  useEffect,
+  lazy,
+  Suspense,
+  startTransition,
+  useTransition,
+} from "react";
 import LoginForm from "./login.jsx";
+import RegisterForm from "./registration.jsx";
 
-// Lazy load non-critical components
-const LikedThoughts = lazy(() => import("./liked-thoughts.jsx"));
-const RandomThoughts = lazy(() => import("./random-thoughts.jsx"));
+// Lazy load all non-critical UI
+const NewThoughtBoard  = lazy(() => import("./new_thought_bord.jsx"));
+const OlderThoughts    = lazy(() => import("./older_thoughts.jsx"));
+const LikedThoughts    = lazy(() => import("./liked-thoughts.jsx"));
+const RandomThoughts   = lazy(() => import("./random-thoughts.jsx"));
 
 const getCurrentUserIdFromToken = (token) => {
   if (!token) return null;
@@ -24,31 +31,29 @@ export const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [thoughts, setThoughts] = useState([]);
   const [likedSet, setLikedSet] = useState(() => {
-    const token = localStorage.getItem("token");
-    const userId = getCurrentUserIdFromToken(token);
+    const t = localStorage.getItem("token");
+    const userId = getCurrentUserIdFromToken(t);
     const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
     return new Set(stored);
   });
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
+  // startTransition for low-priority updates
+  const [isPending, startUpdate] = useTransition();
+
   const fetchThoughts = () => {
     fetch("https://js-project-happy-thoughts.onrender.com/thoughts")
       .then((res) => res.json())
       .then((data) => {
-        const sorted = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setThoughts(sorted);
+        startUpdate(() => {
+          const sorted = data.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          setThoughts(sorted);
+        });
       })
-      .catch((err) => console.error("Error fetching thoughts:", err));
+      .catch(console.error);
   };
-
-  useEffect(() => {
-    if (token) {
-      fetchThoughts();
-      // Preload background components to reduce delay once shown
-      import("./liked-thoughts.jsx");
-      import("./random-thoughts.jsx");
-    }
-  }, [token]);
 
   const handleLogin = (newToken) => {
     localStorage.setItem("token", newToken);
@@ -68,9 +73,26 @@ export const App = () => {
     setLikedSet(new Set());
   };
 
+  useEffect(() => {
+    if (token) {
+      fetchThoughts();
+      // preload lazy chunks during idle time
+      window.requestIdleCallback?.(() => {
+        import("./new_thought_bord.jsx");
+        import("./older_thoughts.jsx");
+        import("./liked-thoughts.jsx");
+        import("./random-thoughts.jsx");
+      });
+    }
+  }, [token]);
+
   if (!token) {
     return (
-      <main className="auth-container" aria-label="Authentication section" style={{ minHeight: "600px" }}>
+      <main
+        className="auth-container"
+        aria-label="Authentication section"
+        style={{ minHeight: "600px" }}
+      >
         <h1 tabIndex={0}>Happy Thoughts</h1>
         <h2 tabIndex={0}>Please log in to share and see thoughts</h2>
         <LoginForm onLogin={handleLogin} />
@@ -79,7 +101,6 @@ export const App = () => {
           aria-haspopup="dialog"
           aria-expanded={showRegisterModal}
           aria-controls="registration-dialog"
-          type="button"
         >
           Register
         </button>
@@ -124,7 +145,6 @@ export const App = () => {
                 className="close-button"
                 onClick={() => setShowRegisterModal(false)}
                 aria-label="Close registration form"
-                type="button"
                 style={{
                   position: "absolute",
                   top: "8px",
@@ -153,48 +173,38 @@ export const App = () => {
       <header aria-label="Page header">
         <h1 tabIndex={0}>Happy Thoughts</h1>
         <p tabIndex={0}>Share your happy thoughts with us!</p>
-        <button onClick={handleLogout} aria-label="Log out" type="button">
+        <button onClick={handleLogout} aria-label="Log out">
           Logout
         </button>
       </header>
 
-      <main className="container" aria-label="Main content">
-        <section aria-labelledby="new-thoughts-heading" style={{ minHeight: "200px" }}>
-          <h2 id="new-thoughts-heading" className="visually-hidden">
-            New Thoughts
-          </h2>
-          <NewThoughtBoard prependThought={(newThought) => setThoughts((prev) => [newThought, ...prev])} />
-        </section>
+      {isPending && (
+        <div role="status" aria-live="polite" className="loading-indicator">
+          Loading thoughts…
+        </div>
+      )}
 
-        <section aria-labelledby="older-thoughts-heading" style={{ minHeight: "600px" }}>
-          <h2 id="older-thoughts-heading" className="visually-hidden">
-            Older Thoughts
-          </h2>
+      <main className="container" aria-label="Main content">
+        <Suspense fallback={<div style={{ minHeight: 200 }}>Loading NewThoughtBoard…</div>}>
+          <NewThoughtBoard prependThought={(nt) => setThoughts((p) => [nt, ...p])} />
+        </Suspense>
+
+        <Suspense fallback={<div style={{ minHeight: 600 }}>Loading OlderThoughts…</div>}>
           <OlderThoughts
             thoughts={thoughts}
             setThoughts={setThoughts}
             likedSet={likedSet}
             setLikedSet={setLikedSet}
           />
-        </section>
+        </Suspense>
 
-        <section aria-labelledby="liked-thoughts-heading" style={{ minHeight: "400px" }}>
-          <h2 id="liked-thoughts-heading" className="visually-hidden">
-            Liked Thoughts
-          </h2>
-          <Suspense fallback={<div className="skeleton" style={{ height: "200px" }} />}>
-            <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
-          </Suspense>
-        </section>
+        <Suspense fallback={<div style={{ minHeight: 400 }}>Loading LikedThoughts…</div>}>
+          <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
+        </Suspense>
 
-        <section aria-labelledby="random-thoughts-heading" style={{ minHeight: "400px" }}>
-          <h2 id="random-thoughts-heading" className="visually-hidden">
-            Random Thoughts
-          </h2>
-          <Suspense fallback={<div className="skeleton" style={{ height: "200px" }} />}>
-            <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
-          </Suspense>
-        </section>
+        <Suspense fallback={<div style={{ minHeight: 400 }}>Loading RandomThoughts…</div>}>
+          <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
+        </Suspense>
       </main>
     </>
   );
