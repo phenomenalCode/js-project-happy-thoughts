@@ -1,14 +1,10 @@
-import React, { useState, useEffect, Suspense } from "react";
-
-// Eagerly load critical components
-import LoginForm from "./login.jsx";
-import RegisterForm from "./registration.jsx";
+import React, { useState, useEffect } from "react";
 import NewThoughtBoard from "./new_thought_bord.jsx";
 import OlderThoughts from "./older_thoughts.jsx";
-
-// Lazy load non-critical
-const LikedThoughts = React.lazy(() => import("./liked-thoughts.jsx"));
-const RandomThoughts = React.lazy(() => import("./random-thoughts.jsx"));
+import LikedThoughts from "./liked-thoughts.jsx";
+import RandomThoughts from "./random-thoughts.jsx";
+import RegisterForm from "./registration.jsx";
+import LoginForm from "./login.jsx";
 
 const getCurrentUserIdFromToken = (token) => {
   if (!token) return null;
@@ -16,7 +12,8 @@ const getCurrentUserIdFromToken = (token) => {
     const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
     const payload = JSON.parse(atob(base64));
     return payload.userId || payload.id || null;
-  } catch {
+  } catch (e) {
+    console.error("Failed to decode token:", e);
     return null;
   }
 };
@@ -25,35 +22,27 @@ export const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [thoughts, setThoughts] = useState([]);
   const [likedSet, setLikedSet] = useState(() => {
+    const token = localStorage.getItem("token");
     const userId = getCurrentUserIdFromToken(token);
     const stored = JSON.parse(localStorage.getItem(`likedThoughts_${userId}`)) || [];
     return new Set(stored);
   });
-
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
-  // Prevent scroll jump when modal opens
-  useEffect(() => {
-    if (showRegisterModal) {
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-    } else {
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.width = "";
-    }
-  }, [showRegisterModal]);
+  // Fetch thoughts from API
+  const fetchThoughts = () => {
+    fetch("https://js-project-happy-thoughts.onrender.com/thoughts")
+      .then((res) => res.json())
+      .then((data) => {
+        const sorted = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setThoughts(sorted);
+      })
+      .catch((err) => console.error("Error fetching thoughts:", err));
+  };
 
   useEffect(() => {
     if (token) {
-      fetch("https://js-project-happy-thoughts.onrender.com/thoughts")
-        .then((res) => res.json())
-        .then((data) => {
-          const sorted = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          setThoughts(sorted);
-        })
-        .catch(console.error);
+      fetchThoughts();
     }
   }, [token]);
 
@@ -75,59 +64,122 @@ export const App = () => {
     setLikedSet(new Set());
   };
 
-  const sectionStyle = { minHeight: "400px", marginBottom: "2rem" };
-
   if (!token) {
     return (
-      <main className="container" aria-label="Main content">
-        <section style={sectionStyle} aria-labelledby="new-thoughts-heading">
-          <h2 id="new-thoughts-heading" className="visually-hidden">New Thoughts</h2>
-          <NewThoughtBoard prependThought={(newThought) => setThoughts([newThought, ...thoughts])} />
-        </section>
+      <main
+        className="auth-container"
+        aria-label="Authentication section"
+        style={{ minHeight: "600px" }} // reserve space to prevent CLS
+      >
+        <h1 tabIndex={0}>Happy Thoughts</h1>
+        <h2 tabIndex={0}>Please log in to share and see thoughts</h2>
 
-        <section style={sectionStyle} aria-labelledby="older-thoughts-heading">
-          <h2 id="older-thoughts-heading" className="visually-hidden">Older Thoughts</h2>
-          <OlderThoughts
-            thoughts={thoughts}
-            setThoughts={setThoughts}
-            likedSet={likedSet}
-            setLikedSet={setLikedSet}
-          />
-        </section>
+        <LoginForm onLogin={handleLogin} />
 
-        <section style={sectionStyle} aria-labelledby="liked-thoughts-heading">
-          <h2 id="liked-thoughts-heading" className="visually-hidden">Liked Thoughts</h2>
-          <Suspense fallback={<div>Loading liked thoughts...</div>}>
-            <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
-          </Suspense>
-        </section>
+        <button
+          onClick={() => setShowRegisterModal(true)}
+          aria-haspopup="dialog"
+          aria-expanded={showRegisterModal}
+          aria-controls="registration-dialog"
+          type="button"
+        >
+          Register
+        </button>
 
-        <section style={sectionStyle} aria-labelledby="random-thoughts-heading">
-          <h2 id="random-thoughts-heading" className="visually-hidden">Random Thoughts</h2>
-          <Suspense fallback={<div>Loading random thoughts...</div>}>
-            <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
-          </Suspense>
-        </section>
+        {showRegisterModal && (
+          <div
+            className="modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="register-heading"
+            id="registration-dialog"
+            onClick={() => setShowRegisterModal(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 1000,
+            }}
+          >
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              role="document"
+              style={{
+                background: "white",
+                padding: "1rem",
+                borderRadius: "8px",
+                maxWidth: "400px",
+                width: "90%",
+                minHeight: "300px",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+                position: "relative",
+              }}
+            >
+              <button
+                className="close-button"
+                onClick={() => setShowRegisterModal(false)}
+                aria-label="Close registration form"
+                type="button"
+                style={{
+                  position: "absolute",
+                  top: "8px",
+                  right: "8px",
+                  background: "transparent",
+                  border: "none",
+                  fontSize: "1.5rem",
+                  cursor: "pointer",
+                }}
+              >
+                &times;
+              </button>
+              <h3 id="register-heading" tabIndex={-1}>
+                Register
+              </h3>
+              <RegisterForm />
+            </div>
+          </div>
+        )}
       </main>
     );
   }
 
   return (
     <>
-      <header>
+      <header aria-label="Page header">
         <h1 tabIndex={0}>Happy Thoughts</h1>
         <p tabIndex={0}>Share your happy thoughts with us!</p>
-        <button onClick={handleLogout} aria-label="Log out">Logout</button>
+        <button onClick={handleLogout} aria-label="Log out" type="button">
+          Logout
+        </button>
       </header>
 
       <main className="container" aria-label="Main content">
-        <section style={sectionStyle} aria-labelledby="new-thoughts-heading">
-          <h2 id="new-thoughts-heading" className="visually-hidden">New Thoughts</h2>
-          <NewThoughtBoard prependThought={(newThought) => setThoughts([newThought, ...thoughts])} />
+        <section
+          aria-labelledby="new-thoughts-heading"
+          style={{ minHeight: "200px" }} // reserve space to avoid CLS
+        >
+          <h2 id="new-thoughts-heading" className="visually-hidden">
+            New Thoughts
+          </h2>
+          <NewThoughtBoard
+            prependThought={(newThought) => setThoughts((prev) => [newThought, ...prev])}
+          />
         </section>
 
-        <section style={sectionStyle} aria-labelledby="older-thoughts-heading">
-          <h2 id="older-thoughts-heading" className="visually-hidden">Older Thoughts</h2>
+        <section
+          aria-labelledby="older-thoughts-heading"
+          style={{ minHeight: "600px" }} // reserve space to avoid CLS
+        >
+          <h2 id="older-thoughts-heading" className="visually-hidden">
+            Older Thoughts
+          </h2>
           <OlderThoughts
             thoughts={thoughts}
             setThoughts={setThoughts}
@@ -136,18 +188,24 @@ export const App = () => {
           />
         </section>
 
-        <section style={sectionStyle} aria-labelledby="liked-thoughts-heading">
-          <h2 id="liked-thoughts-heading" className="visually-hidden">Liked Thoughts</h2>
-          <Suspense fallback={<div>Loading liked thoughts...</div>}>
-            <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
-          </Suspense>
+        <section
+          aria-labelledby="liked-thoughts-heading"
+          style={{ minHeight: "400px" }} // reserve space to avoid CLS
+        >
+          <h2 id="liked-thoughts-heading" className="visually-hidden">
+            Liked Thoughts
+          </h2>
+          <LikedThoughts likedSet={likedSet} allThoughts={thoughts} />
         </section>
 
-        <section style={sectionStyle} aria-labelledby="random-thoughts-heading">
-          <h2 id="random-thoughts-heading" className="visually-hidden">Random Thoughts</h2>
-          <Suspense fallback={<div>Loading random thoughts...</div>}>
-            <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
-          </Suspense>
+        <section
+          aria-labelledby="random-thoughts-heading"
+          style={{ minHeight: "400px" }} // reserve space to avoid CLS
+        >
+          <h2 id="random-thoughts-heading" className="visually-hidden">
+            Random Thoughts
+          </h2>
+          <RandomThoughts likedSet={likedSet} setLikedSet={setLikedSet} />
         </section>
       </main>
     </>
