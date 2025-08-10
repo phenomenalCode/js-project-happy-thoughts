@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect  } from "react";
 import {
   Box,
   Button,
@@ -32,6 +32,10 @@ const NewThoughtBoard = ({ prependThought }) => {
   const [messages, setMessages] = useState([]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [message, setMessage] = useState("");
+  const [liveMessage, setLiveMessage] = useState(questionArr[0]);
+ useEffect(() => {
+    setLiveMessage(questionArr[questionIndex]);
+  }, [questionIndex]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -83,6 +87,7 @@ const NewThoughtBoard = ({ prependThought }) => {
   const handleQuestion = () => {
     setQuestionIndex((prevIndex) => (prevIndex + 1) % questionArr.length);
   };
+   
 
   return (
     <Box
@@ -99,6 +104,7 @@ const NewThoughtBoard = ({ prependThought }) => {
         textAlign: "center",
         fontSize: "1.5rem",
         boxShadow: "5px 8px rgba(0, 0, 0, 0.1)",
+          position: "relative", // for absolute positioning of liveMessage
       }}
     >
       {/* Fixed heading order */}
@@ -118,7 +124,6 @@ const NewThoughtBoard = ({ prependThought }) => {
   variant="h2"
   gutterBottom
   id="new-thought-heading"
-  aria-live="polite"
   sx={{
     minHeight: "3.6rem",
     lineHeight: 1.2,
@@ -127,6 +132,21 @@ const NewThoughtBoard = ({ prependThought }) => {
 >
   {questionArr[questionIndex]}
 </Typography>
+ <div
+        aria-live="polite"
+        style={{
+          position: "absolute",
+          width: "1px",
+          height: "1px",
+          margin: "-1px",
+          padding: 0,
+          overflow: "hidden",
+          clip: "rect(0 0 0 0)",
+          border: 0,
+        }}
+      >
+        {liveMessage}
+      </div>
 
 
       <Typography variant="h3" gutterBottom>
