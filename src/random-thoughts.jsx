@@ -32,7 +32,7 @@ const RandomThoughts = ({ likedSet, setLikedSet }) => {
       return;
     }
 
-    // optimistic increment (same as OlderThoughts)
+    // optimistic increment 
     setThoughts((prev) =>
       prev.map((t) => (t && t._id === thoughtId ? { ...t, hearts: (t.hearts || 0) + 1 } : t))
     );
@@ -51,18 +51,18 @@ const RandomThoughts = ({ likedSet, setLikedSet }) => {
       if (!res.ok) throw new Error(`Like failed: ${res.status}`);
       const updated = await res.json();
 
-      // merge server response (keeps user if present on client like OlderThoughts)
+      // merge server response 
       setThoughts((prev) =>
         prev.map((t) => (t && t._id === thoughtId ? { ...t, ...updated, user: t.user || updated.user } : t))
       );
 
-      // Persist likedThoughts and update parent set (same as OlderThoughts)
+      // Persist likedThoughts and update parent set
       const currentLiked = JSON.parse(localStorage.getItem("likedThoughts")) || [];
       const updatedLiked = [...new Set([...currentLiked, updated._id])];
       localStorage.setItem("likedThoughts", JSON.stringify(updatedLiked));
       setLikedSet(new Set(updatedLiked));
     } catch (err) {
-      // match OlderThoughts: just log the error (no revert)
+     
       console.error("Like error:", err);
     }
   };

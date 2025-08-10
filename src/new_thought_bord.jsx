@@ -102,7 +102,7 @@ const NewThoughtBoard = ({ prependThought }) => {
       }}
     >
       {/* Fixed heading order */}
-      <Typography
+      {/* <Typography
         variant="h2"
         gutterBottom
         id="new-thought-heading"
@@ -113,7 +113,21 @@ const NewThoughtBoard = ({ prependThought }) => {
         }}
       >
         {questionArr[questionIndex]}
-      </Typography>
+      </Typography> */}
+      <Typography
+  variant="h2"
+  gutterBottom
+  id="new-thought-heading"
+  aria-live="polite"
+  sx={{
+    minHeight: "3.6rem",
+    lineHeight: 1.2,
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  }}
+>
+  {questionArr[questionIndex]}
+</Typography>
+
 
       <Typography variant="h3" gutterBottom>
         Your Submitted Messages
