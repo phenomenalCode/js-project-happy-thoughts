@@ -1,15 +1,14 @@
 body {
   background: linear-gradient(180deg, #f5cccc 0%, #f5e1e1 100%);
-  font-family: 'YourFontName', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* General Styles for .questions, .older-thoughts, .liked-thoughts */
 .questions, .older-thoughts, .liked-thoughts {
   border-radius: 1rem;
   box-shadow: 0 8px 16px rgba(255, 105, 180, 0.2); /* Light pink shadow */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   max-width: 601px;
   margin: 2rem auto;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .questions {
@@ -24,19 +23,12 @@ h1 {
   text-align: center;
   margin-bottom: 1.5rem;
 }
-
-h2 {
-  font-size: 2.5rem;
+h2 {font-size: 2.5rem;
   color: #a5001c; /* Vivid red-pink */
   text-align: center;
-  margin-bottom: 1.5rem;
-  min-height: 3.6rem; /* Reserve stable height to reduce CLS */
-  line-height: 1.2;
-}
-
+  margin-bottom: 1.5rem;}
 .container {
   text-align: center;
-  min-height: 600px; /* Reserve main content height to reduce layout shifts */
 }
 
 /* Your existing panel styles */
@@ -50,11 +42,11 @@ h2 {
   background-color: #eaeaeae6;
   border-radius: 1rem;
   padding: 1rem;
-  box-shadow: 5px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 5px 8px rgba(0, 0, 0, 10);
   color: #000000;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
 
+}
 .thought-heading {
   min-height: 3.6rem;
   line-height: 1.2;
@@ -68,6 +60,7 @@ h2 {
     display: block;
     width: 100%;
     margin: 1rem 0;
+
   }
 }
 
@@ -101,8 +94,6 @@ textarea {
   background-color: #fff; /* White background */
   color: #e60026; /* Deep red text */
   font-size: 1rem;
-  box-sizing: border-box;
-  min-height: 3rem; /* Reserve vertical space */
 }
 
 textarea:focus {
@@ -110,20 +101,11 @@ textarea:focus {
   border-color: #ff69b4; /* Pink border on focus */
 }
 
-/* Stable inputs */
-input[type="text"],
-input[type="email"] {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 3rem; /* Reserve vertical space */
-}
-
 /* List item styles */
 .questions ul {
   list-style-type: none;
   padding: 0;
   margin-bottom: 1rem;
-  min-height: 100px; /* Reserve space for dynamic list to reduce layout shifts */
 }
 
 .questions li {
@@ -144,7 +126,6 @@ input[type="email"] {
 .questions li p {
   margin: 0;
 }
-
 button {
   background-color: #e60026; /* Deep red background */
   color: white; /* White text color */
@@ -180,6 +161,7 @@ button:disabled {
     padding: 0.75rem 1.25rem;
     font-size: 0.9rem;
   }
+  
 
   h1 {
     font-size: 2rem;
@@ -206,3 +188,4 @@ button:disabled {
 .form-message {
   min-height: 2rem;
 }
+
