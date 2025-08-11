@@ -113,6 +113,7 @@ const OlderThoughts = ({ likedSet, setLikedSet, thoughts, setThoughts }) => {
         margin: '2rem auto',
         padding: 2,
         backgroundColor: '#eaeaeae6',
+          minHeight: '400px'
       }}
     >
       <Typography
